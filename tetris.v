@@ -80,14 +80,14 @@ module tetris(	clk,
 	reg [2:0] valid;
 	reg clk25M;
 	
-	
+	//============<狀態機>===================
 	reg [2:0] state, nextstate;
-	parameter START = 3'd0;
-	parameter  UP   = 3'd1;
-	parameter DOWN  = 3'd2;
-	parameter LEFT  = 3'd3;
-	parameter RIGHT = 3'd4;
-	parameter END   = 3'd5;
+	parameter START 		= 3'd0;		//開始遊戲
+	parameter NEW_SHAPE  = 3'd1;		//產生第一個圖形
+	parameter DECLINE    = 3'd2;     //方塊降落
+	parameter SHIFT_ON   = 3'd3;     //觸發選轉
+	parameter REMOVE     = 3'd4;     //落下後檢測是否有需要消除的
+	parameter DIED       = 3'd5;     //死亡
 	
 	//IR ir2(clk, rst, IRDA_RXD, oDATA_READY, oDATA);
 	
@@ -99,12 +99,12 @@ module tetris(	clk,
 	parameter H_TOTAL = H_FRONT + H_SYNC + H_BACK + H_ACT;
 	reg [6:0] time_cnt;
 	reg [6:0] score;
-	reg [12:0] objY,objX;			//物體的座標
+	//reg [12:0] objY,objX;			//物體的座標
 	reg [12:0] X,Y;
 	wire clk10;							//除頻訊號
 	wire clk1s;							//除頻訊號
 	counterDivider #(19, 250000) cnt1(clk25M, rst, clk10);
-	counterDivider #(26, 50000000) cnt2(clk, rst, clk1s);
+	counterDivider #(26, 5000_0000) cnt2(clk, rst, clk1s);		//除頻5000萬，相當於1s
 	
 	
 	parameter V_FRONT = 11;
@@ -123,8 +123,8 @@ module tetris(	clk,
 	assign wire_time = time_cnt;
 	//=====================<tetris data>============================
 	reg [9:0] board [19:0];       //20寬度*10高度
-	reg [3:0] pos_x [3:0];			//0~15 X座標
-	reg [4:0] pos_y [4:0];			//0~31 Y座標
+	reg [3:0] pos_x;			//0~15 X座標
+	reg [4:0] pos_y;			//0~31 Y座標
 	reg [2:0] shape;					//七種圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
 	/* 
@@ -158,21 +158,21 @@ module tetris(	clk,
 				{4'b0000},
 	//I
 	{4'b0000},
-	{4'b0000},
-	{4'b0000},
 	{4'b1111},
-		{4'b1000},
-		{4'b1000},
-		{4'b1000},
-		{4'b1000},
-			{4'b0000},
-			{4'b0000},
+	{4'b0000},
+	{4'b0000},
+		{4'b0010},
+		{4'b0010},
+		{4'b0010},
+		{4'b0010},
 			{4'b0000},
 			{4'b1111},
-				{4'b1000},
-				{4'b1000},
-				{4'b1000},
-				{4'b1000},
+			{4'b0000},
+			{4'b0000},
+				{4'b0010},
+				{4'b0010},
+				{4'b0010},
+				{4'b0010},
 	//S
 	{4'b0000},
 	{4'b0011},
@@ -286,132 +286,28 @@ module tetris(	clk,
 			state <= nextstate;
 		end
 	end
-	/*
-	//============<食物>===================
-	reg [8:0] food_x;
-	reg [8:0] food_y;
-	*/
-	/*
+	
+	
 	//============<狀態轉移>===================
 	always @(*)begin
 		case(state)
 			START:begin
 				if(!KEY_1)begin
-					nextstate = UP;
+					nextstate = NEW_SHAPE;
 				end
 				else begin
 					nextstate = START;
 				end
 			end
-			UP:begin
-				if(time_cnt==0)begin
-					nextstate = END;
-				end
-				else if(key1_on)begin
-					if(key1_code == 8'h75)begin 		//up			
-						nextstate = UP;
-					end
-					else if(key1_code == 8'h72)begin	//down
-						nextstate = DOWN;
-					end
-					else if(key1_code == 8'h6B)begin	//left
-						nextstate = LEFT;
-					end
-					else if(key1_code == 8'h74)begin	//right
-						nextstate = RIGHT;
-					end
-					else begin
-						nextstate = UP;
-					end
-				end
-				else begin
-					nextstate = UP;
-				end
-			end
-			DOWN:begin
-				if(time_cnt==0)begin
-					nextstate = END;
-				end
-				else if(key1_on)begin
-					if(key1_code == 8'h75)begin 		//up			
-						nextstate = UP;
-					end
-					else if(key1_code == 8'h72)begin	//down
-						nextstate = DOWN;
-					end
-					else if(key1_code == 8'h6B)begin	//left
-						nextstate = LEFT;
-					end
-					else if(key1_code == 8'h74)begin	//right
-						nextstate = RIGHT;
-					end
-					else begin
-						nextstate = DOWN;
-					end
-				end
-				else begin
-					nextstate = DOWN;
-				end
-			end
-			LEFT:begin
-				if(time_cnt==0)begin
-					nextstate = END;
-				end
-				else if(key1_on)begin
-					if(key1_code == 8'h75)begin 		//up			
-						nextstate = UP;
-					end
-					else if(key1_code == 8'h72)begin	//down
-						nextstate = DOWN;
-					end
-					else if(key1_code == 8'h6B)begin	//left
-						nextstate = LEFT;
-					end
-					else if(key1_code == 8'h74)begin	//right
-						nextstate = RIGHT;
-					end
-					else begin
-						nextstate = LEFT;
-					end
-				end
-				else begin
-					nextstate = LEFT;
-				end
-			end
-			RIGHT:begin
-				if(time_cnt==0)begin
-					nextstate = END;
-				end
-				else if(key1_on)begin
-					if(key1_code == 8'h75)begin 		//up			
-						nextstate = UP;
-					end
-					else if(key1_code == 8'h72)begin	//down
-						nextstate = DOWN;
-					end
-					else if(key1_code == 8'h6B)begin	//left
-						nextstate = LEFT;
-					end
-					else if(key1_code == 8'h74)begin	//right
-						nextstate = RIGHT;
-					end
-					else begin
-						nextstate = RIGHT;
-					end
-				end
-				else begin
-					nextstate = RIGHT;
-				end
-			end
-			END:begin
-				nextstate = END;
+			NEW_SHAPE:begin
+				nextstate = NEW_SHAPE;
 			end
 			default:begin
 				nextstate = START;
 			end
 		endcase
 	end
-	*/
+	
 	
 	always@(posedge clk25M)
 	begin
@@ -466,7 +362,13 @@ module tetris(	clk,
 			{VGA_R,VGA_G,VGA_B}<=24'h0000ff;//blue
 		end
 		else 
-		begin/*
+		begin
+			if(board[Y][X-100]==1 && x>= 100)begin
+				if((Y+25)>objY && Y<(objY+25)&&(X+25)>objX && X<(objX+25))begin
+					{VGA_R,VGA_G,VGA_B}<=color[0]; 
+				end
+			end
+			/*
 			if((Y+25)>objY && Y<(objY+25)&&(X+25)>objX && X<(objX+25))begin
 				{VGA_R,VGA_G,VGA_B}<=color[0]; 
 			end
@@ -501,6 +403,18 @@ module tetris(	clk,
 				default:time_cnt <= 7'd0;
 			endcase
 		end
+	end
+	integer y;
+	always @(posedge clk1s, negedge rst)begin
+		if(!rst)begin
+			for(y=0;y<20;y=y+1)begin
+				board[y] <= 10'd0;
+			end
+		end
+		else begin
+		
+		
+		end	
 	end
 	/*
 	//=============<人物移動選擇>============
