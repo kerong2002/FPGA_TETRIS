@@ -127,6 +127,8 @@ module tetris(	clk,
 	reg [4:0] pos_y;			//0~31 Y座標
 	reg [2:0] shape;					//七種圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
+	parameter initial_shape_pos_x = 4'd5;
+	parameter initial_shape_pos_y = 5'd0;
 	/* 
 		0 -> O
 		1 -> I
@@ -371,24 +373,12 @@ module tetris(	clk,
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-				if(board[(Y-Board_min_Y)/20][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X)begin
+				if(board[(Y-Board_min_Y)/20][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
 					{VGA_R,VGA_G,VGA_B}<=color[3];
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=color[4];
 				end
-				
-				/*
-				for(j=0;j<20;j=j+1)begin
-					for(i=0;i<10;i=i+1)begin
-						if(i*20+230-10<=X && i*20+230+10>=X && j*20+50-10<=Y && j*20+50+10>=Y && board[j][i]==1'b1)begin
-							{VGA_R,VGA_G,VGA_B}<=color[3];
-						end
-						else begin
-							{VGA_R,VGA_G,VGA_B}<=color[4];
-						end
-					end
-				end*/
 			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
 				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
