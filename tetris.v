@@ -353,34 +353,54 @@ module tetris(	clk,
 		end
 	end
 
-	reg [23:0]color[3:0];
-
+	reg [23:0]color[5:0];	//顏色區塊
+	//========<設定遊戲布局大小和邊框>===========
+	parameter Board_min_X   = 13'd245;
+	parameter Board_max_X   = 13'd395;
+	parameter Board_min_Y	= 13'd40;
+	parameter Board_max_Y   = 13'd440;
+	parameter Board_frame   = 13'd5;
 	
-	//===========<上色>=================
+	integer i,j;
+	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
+	//===========<螢幕上色>=================
 	always@(posedge clk25M,negedge rst)begin
 		if (!rst) begin
 			{VGA_R,VGA_G,VGA_B}<=24'h0000ff;//blue
 		end
-		else 
-		begin
-			if(board[Y][X-100]==1 && x>= 100)begin
-				if((Y+25)>objY && Y<(objY+25)&&(X+25)>objX && X<(objX+25))begin
-					{VGA_R,VGA_G,VGA_B}<=color[0]; 
+		else begin
+			//主要方塊繪製部分
+			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
+				if(board[(Y-Board_min_Y)/20][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X)begin
+					{VGA_R,VGA_G,VGA_B}<=color[3];
 				end
+				else begin
+					{VGA_R,VGA_G,VGA_B}<=color[4];
+				end
+				
+				/*
+				for(j=0;j<20;j=j+1)begin
+					for(i=0;i<10;i=i+1)begin
+						if(i*20+230-10<=X && i*20+230+10>=X && j*20+50-10<=Y && j*20+50+10>=Y && board[j][i]==1'b1)begin
+							{VGA_R,VGA_G,VGA_B}<=color[3];
+						end
+						else begin
+							{VGA_R,VGA_G,VGA_B}<=color[4];
+						end
+					end
+				end*/
 			end
-			/*
-			if((Y+25)>objY && Y<(objY+25)&&(X+25)>objX && X<(objX+25))begin
-				{VGA_R,VGA_G,VGA_B}<=color[0]; 
+			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
+				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
 			end
-			else if((Y+5)>food_y && Y<(food_y+5)&&(X+5)>food_x && X<(food_x+5))begin
-				{VGA_R,VGA_G,VGA_B}<=color[1]; 
+			else begin
+				{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
 			end
-			else begin*/
-				{VGA_R,VGA_G,VGA_B}<=24'hff0000; 
-			//end
+			//{VGA_R,VGA_G,VGA_B}<=color[2];
+
 		end
 	end
-	
+	/*
 	always @(posedge clk1s,negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 7'd0;
@@ -403,71 +423,41 @@ module tetris(	clk,
 				default:time_cnt <= 7'd0;
 			endcase
 		end
-	end
+	end*/
 	integer y;
 	always @(posedge clk1s, negedge rst)begin
 		if(!rst)begin
 			for(y=0;y<20;y=y+1)begin
-				board[y] <= 10'd0;
+				board[y] <= 10'b0;
 			end
 		end
 		else begin
-		
-		
+			board[0]  <= 10'b00_0000_0000;
+			board[1]  <= 10'b00_0000_0000;
+			board[2]  <= 10'b00_0000_0000;
+			board[3]  <= 10'b00_0000_0000;
+			board[4]  <= 10'b00_0000_0000;
+			board[5]  <= 10'b00_0000_0000;
+			board[6]  <= 10'b00_0000_0000;
+			board[7]  <= 10'b00_0000_0000;
+			board[8]  <= 10'b00_0000_0000;
+			board[9]  <= 10'b00_0000_0000;
+			board[10] <= 10'b00_0000_0000;
+			board[11] <= 10'b00_0000_0000;
+			board[12] <= 10'b00_0000_0000;
+			board[13] <= 10'b00_0000_000;
+			board[14] <= 10'b00_0000_0000;
+			board[15] <= 10'b00_0000_0000;
+			board[16] <= 10'b00_0000_0000;
+			board[17] <= 10'b00_0000_0000;
+			board[18] <= 10'b00_1010_0011;
+			board[19] <= 10'b11_1011_1011;
+			/*
+			for(y=0;y<20;y=y+1)begin
+					board[y] <= 10'b1111111111;
+			end*/
 		end	
 	end
-	/*
-	//=============<人物移動選擇>============
-	always @(posedge clk10,negedge rst)begin
-		if (!rst) begin
-			objX <= 13'd320;
-			objY <= 13'd240;
-			food_x <= 9'hF1;
-			food_y <= 9'hB3;
-			score <= 7'd0;
-		end
-		else begin
-			if(objY+5>=food_y-25 &&objY-5<=food_y+25 && objX+5 >= food_x-25 && objX-5 <= food_x+25)begin
-				food_x={food_x[8:0],food_x[0]^food_x[2]};
-				food_y={food_y[8:0],food_y[0]^food_y[2]};
-				score <= score + 7'd1;
-			end
-			case(state)
-				UP:begin
-					if(objY==13'd0)begin
-						objY <= 13'd480;
-					end
-					else begin
-						objY <= objY - 13'd1;
-					end
-				end
-				DOWN:begin
-					if(objY==13'd480)begin
-						objY <= 13'd0;
-					end
-					else begin
-						objY <= objY + 13'd1;
-					end
-				end
-				LEFT:begin
-					if(objX==13'd0)begin
-						objX <= 13'd640;
-					end
-					else begin
-						objX <= objX - 13'd1;
-					end
-				end
-				RIGHT:begin
-					if(objX==13'd640)begin
-						objX <= 13'd0;
-					end
-					else begin
-						objX <= objX + 13'd1;
-					end
-				end
-			endcase
-		end
-	end*/
 	
 
 	
@@ -476,12 +466,16 @@ module tetris(	clk,
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
 			color[2]<=24'hff0000;//red
-			color[3]<=24'h003fff;//
+			color[3]<=24'h003fff;//Dark blue
+			color[4]<=24'hffffff;//white
+			color[5]<=24'h606166;//gray
 		end else begin
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
 			color[2]<=24'hff0000;//red
-			color[3]<=24'h003fff;//
+			color[3]<=24'h003fff;//Dark blue
+			color[4]<=24'hffffff;//white
+			color[5]<=24'h606166;//gray
 		end
 	end
 
