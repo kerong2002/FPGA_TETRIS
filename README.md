@@ -1,5 +1,14 @@
 # FPGA_TETRIS
 FPGA_TETRIS
+## 操做說明
+|KEY_BOARD|操作|
+|:-------:|:------:|
+|left|向左|
+|right|向右|
+|shift|左轉|
+|z|左轉|
+|x|右轉|
+
 ## 2022/12/23
 - 1 PS2 設定
 - 2 PS2 雙鍵問題解決
