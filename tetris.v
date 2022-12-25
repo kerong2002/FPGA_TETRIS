@@ -88,6 +88,7 @@ module tetris(	clk,
 	parameter SHIFT_ON   = 3'd3;     //觸發選轉
 	parameter REMOVE     = 3'd4;     //落下後檢測是否有需要消除的
 	parameter DIED       = 3'd5;     //死亡
+	parameter PLACE      = 3'd6;     //放置
 	
 	//IR ir2(clk, rst, IRDA_RXD, oDATA_READY, oDATA);
 	
@@ -104,7 +105,7 @@ module tetris(	clk,
 	wire clk0_1s;							//除頻訊號
 	wire clk1s;							//除頻訊號
 	counterDivider #(26, 500_0000) cnt1(clk25M, rst, clk0_1s);  //除頻500萬，相當於0.1s
-	counterDivider #(26, 5000_0000) cnt2(clk, rst, clk1s);		//除頻5000萬，相當於1s
+	counterDivider #(26, 1250_0000) cnt2(clk, rst, clk1s);		//除頻5000萬，相當於1s
 	
 	
 	parameter V_FRONT = 11;
@@ -128,7 +129,7 @@ module tetris(	clk,
 	reg [2:0] shape;					//七種圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
 	parameter initial_shape_pos_x = 6'd4;
-	parameter initial_shape_pos_y = -6'd3;
+	parameter initial_shape_pos_y = 6'd0;
 	/* 
 		0 -> O
 		1 -> I
@@ -330,7 +331,55 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-				if(key1_code == 8'h12 || key2_code == 8'h12)begin
+if(graph[(SW[2:0]*4) + rotation_choose][15]==1'b1 && (pos_y + 3) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][14]==1'b1 && (pos_y + 3) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][13]==1'b1 && (pos_y + 3) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][12]==1'b1 && (pos_y + 3) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][11]==1'b1 && (pos_y + 2) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][10]==1'b1 && (pos_y + 2) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][9]==1'b1 && (pos_y + 2) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][8]==1'b1 && (pos_y + 2) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][7]==1'b1 && (pos_y + 1) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][6]==1'b1 && (pos_y + 1) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][5]==1'b1 && (pos_y + 1) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][4]==1'b1 && (pos_y + 1) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][3]==1'b1 && (pos_y + 0) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][2]==1'b1 && (pos_y + 0) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][1]==1'b1 && (pos_y + 0) >= 19)begin
+  nextstate = PLACE;
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][0]==1'b1 && (pos_y + 0) >= 19)begin
+  nextstate = PLACE;
+end
+				else if(key1_code == 8'h12 || key2_code == 8'h12)begin
 					nextstate = SHIFT_ON;
 				end
 				else begin
@@ -339,6 +388,9 @@ module tetris(	clk,
 			end
 			SHIFT_ON:begin
 				nextstate = DECLINE;
+			end
+			PLACE:begin
+				nextstate = NEW_SHAPE;
 			end
 			default:begin
 				nextstate = START;
@@ -499,19 +551,29 @@ end
 		end
 	end*/
 	
-	integer y;
+	integer y,x;
 	//==============<控制board>==============
 	always@(posedge clk25M, negedge rst)begin
 		if(!rst)begin
-			for(y=0;y<23;y=y+1)begin
+			for(y=0;y<=23;y=y+1)begin
 				board[y] <= 10'b0;
 			end
 		end
 		else begin
-		
+			case(state)
+				PLACE:begin
+					for(y=3;y>=0;y=y-1)begin
+						for(x=3;x>=0;x=x-1)begin
+							if(graph[(SW[2:0]*4) + rotation_choose][(y<<2)+x]==1'b1)begin
+							  board[pos_y + y+4][pos_x + x] <= 1'b1;
+							end
+						end
+					end
+				end
+			endcase
 		end
 	end
-	
+
 	//==============<控制左右和旋轉>===========
 	always@(posedge clk0_1s, negedge rst)begin
 		if(!rst)begin
@@ -536,7 +598,6 @@ end
 			endcase
 		end
 	end 
-
 	//================<控制向下>===========
 	always @(posedge clk1s, negedge rst)begin
 		if(!rst)begin
@@ -552,6 +613,9 @@ end
 				end
 				DECLINE:begin
 					pos_y <= pos_y + 1'b1;//下
+				end
+				PLACE:begin
+					pos_y <= -6'd4;
 				end
 			endcase
 		end	
