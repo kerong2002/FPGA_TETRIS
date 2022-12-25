@@ -331,54 +331,54 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-if(graph[(shape*4) + rotation_choose][15]==1'b1 && (pos_y + 3) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 && (pos_y + 3) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 && (pos_y + 3) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 && (pos_y + 3) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 && (pos_y + 2) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][10]==1'b1 && (pos_y + 2) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][9]==1'b1 && (pos_y + 2) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][8]==1'b1 && (pos_y + 2) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][7]==1'b1 && (pos_y + 1) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][6]==1'b1 && (pos_y + 1) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][5]==1'b1 && (pos_y + 1) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][4]==1'b1 && (pos_y + 1) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][3]==1'b1 && (pos_y + 0) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][2]==1'b1 && (pos_y + 0) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][1]==1'b1 && (pos_y + 0) >= 18)begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][0]==1'b1 && (pos_y + 0) >= 18)begin
-  nextstate = PLACE;
-end
+				if(graph[(shape*4) + rotation_choose][15]==1'b1 && (pos_y + 3) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][14]==1'b1 && (pos_y + 3) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][13]==1'b1 && (pos_y + 3) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][12]==1'b1 && (pos_y + 3) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][11]==1'b1 && (pos_y + 2) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][10]==1'b1 && (pos_y + 2) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][9]==1'b1 && (pos_y + 2) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][8]==1'b1 && (pos_y + 2) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][7]==1'b1 && (pos_y + 1) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][6]==1'b1 && (pos_y + 1) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][5]==1'b1 && (pos_y + 1) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][4]==1'b1 && (pos_y + 1) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][3]==1'b1 && (pos_y + 0) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][2]==1'b1 && (pos_y + 0) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][1]==1'b1 && (pos_y + 0) >= 18)begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][0]==1'b1 && (pos_y + 0) >= 18)begin
+				  nextstate = PLACE;
+				end
 				/*else if(key1_code == 8'h12 || key2_code == 8'h12)begin
 					nextstate = SHIFT_ON;
 				end*/
@@ -461,54 +461,54 @@ end
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-if(graph[(shape*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
-else if(graph[(shape*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-    {VGA_R,VGA_G,VGA_B}<=color[2];
-end
+				if(graph[(shape*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(shape*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
 					{VGA_R,VGA_G,VGA_B}<=color[3];
 				end
@@ -562,7 +562,8 @@ end
 		else begin
 			case(state)
 				PLACE:begin
-				if(graph[(shape*4) + rotation_choose][15]==1'b1)begin
+				/*
+if(graph[(shape*4) + rotation_choose][15]==1'b1)begin
   board[pos_y + 3+4][pos_x + 3] <= 1'b1;
 end
 if(graph[(shape*4) + rotation_choose][14]==1'b1)begin
@@ -610,7 +611,8 @@ end
 if(graph[(shape*4) + rotation_choose][0]==1'b1)begin
   board[pos_y + 0+4][pos_x + 0] <= 1'b1;
 end
-				/*
+*/
+				
 					for(y=3;y>=0;y=y-1)begin
 						for(x=3;x>=0;x=x-1)begin
 							if(graph[(shape*4) + rotation_choose][(y<<2)+x]==1'b1)begin
@@ -618,7 +620,7 @@ end
 							end
 						end
 					end
-				*/
+				
 				end
 			endcase
 		end
@@ -683,15 +685,15 @@ end
 		if(!rst)begin
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
-			color[2]<=24'hff0000;//red
-			color[3]<=24'h003fff;//Dark blue
+			color[2]<=24'hfe0e86;//pink
+			color[3]<=24'h0185fc;//sky blue
 			color[4]<=24'hffffff;//white
 			color[5]<=24'h606166;//gray
 		end else begin
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
-			color[2]<=24'hff0000;//red
-			color[3]<=24'h003fff;//Dark blue
+			color[2]<=24'hfe0e86;//pink
+			color[3]<=24'h0185fc;//sky blue
 			color[4]<=24'hffffff;//white
 			color[5]<=24'h606166;//gray
 		end
