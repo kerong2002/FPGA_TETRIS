@@ -1,4 +1,4 @@
-//`include "./IR.v"
+`include "./IR.v"
 `include "./LCD.v"
 `include "./PS2_KEYBOARD2.v"
 module tetris(	clk,
@@ -90,7 +90,7 @@ module tetris(	clk,
 	parameter DIED       = 3'd5;     //死亡
 	parameter PLACE      = 3'd6;     //放置
 	
-	//IR ir2(clk, rst, IRDA_RXD, oDATA_READY, oDATA);
+	IR ir2(clk, rst, IRDA_RXD, oDATA_READY, oDATA);
 	
 	parameter H_FRONT = 16;
 	parameter H_SYNC  = 96;
@@ -102,11 +102,85 @@ module tetris(	clk,
 	reg [6:0] score;
 	//reg [12:0] objY,objX;			//物體的座標
 	reg [12:0] X,Y;
-	wire clk0_1s;							//除頻訊號
-	wire clk1s;							//除頻訊號
-	counterDivider #(26, 500_0000) cnt1(clk25M, rst, clk0_1s);  //除頻500萬，相當於0.1s
-	counterDivider #(26, 1250_0000) cnt2(clk, rst, clk1s);		//除頻5000萬，相當於1s
+	wire IR_CLK_1S;						//除頻訊號1
+	wire IR_CLK_10S;						//除頻訊號10
+	reg  reg_IR_CLK_1S;					//暫存1
+	reg  reg_IR_CLK_10S;					//暫存10
+	reg [1:0] IR_speed;						//IR調整速度
 	
+	assign IR_CLK_1S = reg_IR_CLK_1S;	//暫存轉移
+	assign IR_CLK_10S = reg_IR_CLK_10S; //暫存轉移
+	
+	always @(*)begin
+		case(IR_speed)
+			2'd0:begin
+				reg_IR_CLK_1S  = first_clk_1;
+				reg_IR_CLK_10S = first_clk_10;
+			end
+			2'd1:begin
+				reg_IR_CLK_1S  = second_clk_1;
+				reg_IR_CLK_10S = second_clk_10;
+			end
+			2'd2:begin
+				reg_IR_CLK_1S  = third_clk_1;
+				reg_IR_CLK_10S = third_clk_10;
+			end
+			2'd3:begin
+				reg_IR_CLK_1S  = forth_clk_1;
+				reg_IR_CLK_10S = forth_clk_10;
+			end
+		endcase
+	end
+	
+	//assign (IR_CLK_1S)  = (IR_speed == 2'd3) ? forth_clk_1  : (IR_speed == 2'd2) ? third_clk_1  : (IR_speed == 2'd1) ? second_clk_1  : first_clk_1;
+	//assign (IR_CLK_10S) = (IR_speed == 2'd3) ? forth_clk_10 : (IR_speed == 2'd2) ? third_clk_10 : (IR_speed == 2'd1) ? second_clk_10 : first_clk_10;
+	
+	//=============<速度調節>=================
+	always@(negedge oDATA_READY, negedge rst)begin
+		if (!rst)begin
+			IR_speed <= 2'd0;
+		end 
+		else begin
+			case(oDATA[23:16])
+				8'h1A:begin
+					IR_speed <= IR_speed + 2'd1;
+				end
+				8'h1B:begin
+					IR_speed <= IR_speed + 2'd1;
+				end
+				8'h1E:begin
+					IR_speed <= IR_speed - 2'd1;
+				end
+				8'h1F:begin
+					IR_speed <= IR_speed - 2'd1;
+				end
+			endcase
+		end
+	end
+	
+	wire first_clk_1;
+	wire first_clk_10;
+	//======================<第一組速度>=====================
+	counterDivider #(23, 500_0000)  cnt_first_1(clk25M, rst, first_clk_1);  	//除頻500萬，操作速度相當於0.2s
+	counterDivider #(26, 5000_0000) cnt_first_10(clk  , rst, first_clk_10);		//除頻5000萬，遊戲速度相當於1s
+	
+	wire second_clk_1;
+	wire second_clk_10;
+	//======================<第二組速度>=====================
+	counterDivider #(22, 250_0000)  cnt_second_1(clk25M, rst, second_clk_1);  	//除頻250萬，操作速度相當於0.1s
+	counterDivider #(25, 2500_0000) cnt_sceond_10(clk  , rst, second_clk_10);	//除頻2500萬，遊戲速度相當於0.5s
+	
+	wire third_clk_1;
+	wire third_clk_10;
+	//======================<第三組速度>=====================
+	counterDivider #(21, 125_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻125萬，操作速度相當於50ms
+	counterDivider #(24, 1250_0000) cnt_third_10(clk  , rst, third_clk_10);	    //除頻1250萬，遊戲速度相當於0.25s
+	
+	wire forth_clk_1;
+	wire forth_clk_10;
+	//======================<第四組速度>=====================
+	counterDivider #(20,  62_5000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	//除頻62.5萬，操作速度相當於25ms
+	counterDivider #(23, 625_0000)  cnt_forth_10(clk  , rst, forth_clk_10);	    //除頻625萬，遊戲速度相當於0.125s
 	
 	parameter V_FRONT = 11;
 	parameter V_SYNC  = 2;
@@ -118,10 +192,13 @@ module tetris(	clk,
 	assign VGA_BLANK_N = ~((counterHS<H_BLANK)||(counterVS<V_BLANK));
 	assign VGA_CLOCK = ~clk25M;
 	
+	//================<LCD顯示資料>===================
 	wire [6:0] wire_time;
 	wire [6:0] wire_score;
 	assign wire_score = score;
 	assign wire_time = time_cnt;
+	
+	
 	//=====================<tetris data>============================
 	reg [9:0] board [23:0];       //20寬度*10高度 4個高度保留值
 	reg [5:0] pos_x;			//0~15 X座標
@@ -306,7 +383,7 @@ module tetris(	clk,
 		clk25M = ~clk25M;
 	
 	//===========<狀態選擇>===================
-	always @(posedge clk1s,negedge rst)begin
+	always @(posedge IR_CLK_10S,negedge rst)begin
 		if(!rst)begin
 			state <= START;
 		end
@@ -331,54 +408,55 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-				if(graph[(shape*4) + rotation_choose][15]==1'b1 && (pos_y + 3) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][14]==1'b1 && (pos_y + 3) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][13]==1'b1 && (pos_y + 3) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][12]==1'b1 && (pos_y + 3) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][11]==1'b1 && (pos_y + 2) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][10]==1'b1 && (pos_y + 2) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][9]==1'b1 && (pos_y + 2) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][8]==1'b1 && (pos_y + 2) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][7]==1'b1 && (pos_y + 1) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][6]==1'b1 && (pos_y + 1) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][5]==1'b1 && (pos_y + 1) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][4]==1'b1 && (pos_y + 1) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][3]==1'b1 && (pos_y + 0) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][2]==1'b1 && (pos_y + 0) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][1]==1'b1 && (pos_y + 0) >= 18)begin
-				  nextstate = PLACE;
-				end
-				else if(graph[(shape*4) + rotation_choose][0]==1'b1 && (pos_y + 0) >= 18)begin
-				  nextstate = PLACE;
-				end
+if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+  nextstate = PLACE;
+end
+
 				/*else if(key1_code == 8'h12 || key2_code == 8'h12)begin
 					nextstate = SHIFT_ON;
 				end*/
@@ -527,7 +605,7 @@ module tetris(	clk,
 		end
 	end
 	/*
-	always @(posedge clk1s,negedge rst)begin
+	always @(posedge IR_CLK_10S,negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 7'd0;
 		end
@@ -627,7 +705,7 @@ end
 	end
 
 	//==============<控制左右和旋轉>===========
-	always@(posedge clk0_1s, negedge rst)begin
+	always@(posedge IR_CLK_1S, negedge rst)begin
 		if(!rst)begin
 			pos_x <= initial_shape_pos_x;
 			rotation_choose <= 2'd0;
@@ -657,7 +735,7 @@ end
 		end
 	end 
 	//================<控制向下>===========
-	always @(posedge clk1s, negedge rst)begin
+	always @(posedge IR_CLK_10S, negedge rst)begin
 		if(!rst)begin
 			shape <= 3'd3;
 			pos_y <= initial_shape_pos_y;
