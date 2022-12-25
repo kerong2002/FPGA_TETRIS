@@ -173,19 +173,19 @@ module tetris(	clk,
 	wire second_clk_1;
 	wire second_clk_10;
 	//======================<第二組速度>=====================
-	counterDivider #(22, 250_0000)  cnt_second_1(clk25M, rst, second_clk_1);  	//除頻250萬，操作速度相當於0.1s
+	counterDivider #(23, 500_0000)  cnt_second_1(clk25M, rst, second_clk_1);  	//除頻500萬，操作速度相當於0.2s
 	counterDivider #(25, 2500_0000) cnt_sceond_10(clk  , rst, second_clk_10);	//除頻2500萬，遊戲速度相當於0.5s
 	
 	wire third_clk_1;
 	wire third_clk_10;
 	//======================<第三組速度>=====================
-	counterDivider #(21, 125_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻125萬，操作速度相當於50ms
-	counterDivider #(24, 1250_0000) cnt_third_10(clk  , rst, third_clk_10);	    //除頻1250萬，遊戲速度相當於0.25s
+	counterDivider #(22, 250_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻250萬，操作速度相當於0.1s
+	counterDivider #(24, 1250_0000) cnt_third_10(clk  , rst, third_clk_10);	   //除頻1250萬，遊戲速度相當於0.25s
 	
 	wire forth_clk_1;
 	wire forth_clk_10;
 	//======================<第四組速度>=====================
-	counterDivider #(20,  62_5000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	//除頻62.5萬，操作速度相當於25ms
+	counterDivider #(22, 250_0000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	 //除頻250萬，操作速度相當於0.1s
 	counterDivider #(23, 625_0000)  cnt_forth_10(clk  , rst, forth_clk_10);	    //除頻625萬，遊戲速度相當於0.125s
 	
 	parameter V_FRONT = 11;
@@ -357,9 +357,9 @@ module tetris(	clk,
 	{4'b0111}};
 	assign graph[25] = {
 	{4'b0000},
-	{4'b0010},
+	{4'b0001},
 	{4'b0011},
-	{4'b0010}};
+	{4'b0001}};
 	assign graph[26] = {
 	{4'b0000},
 	{4'b0000},
@@ -367,9 +367,10 @@ module tetris(	clk,
 	{4'b0010}};
 	assign graph[27] = {
 	{4'b0000},
-	{4'b0001},
+	{4'b0010},
 	{4'b0011},
-	{4'b0001}};
+	{4'b0010}};
+
 	/*
 	reg [1:0] gameState;
    always@(*)begin
