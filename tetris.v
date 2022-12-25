@@ -168,25 +168,25 @@ module tetris(	clk,
 	wire first_clk_10;
 	//======================<第一組速度>=====================
 	counterDivider #(23, 500_0000)  cnt_first_1(clk25M, rst, first_clk_1);  	//除頻500萬，操作速度相當於0.2s
-	counterDivider #(26, 5000_0000) cnt_first_10(clk  , rst, first_clk_10);		//除頻5000萬，遊戲速度相當於1s
+	counterDivider #(26, 5000_0000) cnt_first_10(clk  , rst, first_clk_10);		//除頻5000萬
 	
 	wire second_clk_1;
 	wire second_clk_10;
 	//======================<第二組速度>=====================
 	counterDivider #(23, 500_0000)  cnt_second_1(clk25M, rst, second_clk_1);  	//除頻500萬，操作速度相當於0.2s
-	counterDivider #(25, 2500_0000) cnt_sceond_10(clk  , rst, second_clk_10);	//除頻2500萬，遊戲速度相當於0.5s
+	counterDivider #(25, 3000_0000) cnt_sceond_10(clk  , rst, second_clk_10);	//除頻3000萬
 	
 	wire third_clk_1;
 	wire third_clk_10;
 	//======================<第三組速度>=====================
-	counterDivider #(22, 250_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻250萬，操作速度相當於0.1s
-	counterDivider #(24, 1250_0000) cnt_third_10(clk  , rst, third_clk_10);	   //除頻1250萬，遊戲速度相當於0.25s
+	counterDivider #(22,  300_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻300萬
+	counterDivider #(25, 2500_0000) cnt_third_10(clk  , rst, third_clk_10);	   //除頻2500萬
 	
 	wire forth_clk_1;
 	wire forth_clk_10;
 	//======================<第四組速度>=====================
-	counterDivider #(22, 250_0000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	 //除頻250萬，操作速度相當於0.1s
-	counterDivider #(23, 625_0000)  cnt_forth_10(clk  , rst, forth_clk_10);	    //除頻625萬，遊戲速度相當於0.125s
+	counterDivider #(22,  300_0000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	 //除頻300萬
+	counterDivider #(24, 1600_0000)  cnt_forth_10(clk  , rst, forth_clk_10);	 //除頻1600萬
 	
 	parameter V_FRONT = 11;
 	parameter V_SYNC  = 2;
@@ -415,52 +415,52 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
 
