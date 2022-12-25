@@ -16,15 +16,13 @@ module tetris(	clk,
 					VGA_B,
 					VGA_BLANK_N,
 					VGA_CLOCK,
-					KEY_1,
 					PS2_CLK,
 					PS2_DAT,
 					LEDR);
 	
 	input clk;						//clk 50MHz
 	input rst;						//重製訊號
-	input KEY_1;					//按鈕,開始
-	
+	//input KEY_1;					//按鈕,開始
 	//==========<PS2>=================
 	input	PS2_CLK;						//PS2鍵盤訊號輸入
 	inout	PS2_DAT;						//PS2鍵盤資料輸入
@@ -143,16 +141,24 @@ module tetris(	clk,
 		else begin
 			case(oDATA[23:16])
 				8'h1A:begin
-					IR_speed <= IR_speed + 2'd1;
+					if(IR_speed < 2'd3)begin
+						IR_speed <= IR_speed + 2'd1;
+					end
 				end
 				8'h1B:begin
-					IR_speed <= IR_speed + 2'd1;
+					if(IR_speed < 2'd3)begin
+						IR_speed <= IR_speed + 2'd1;
+					end
 				end
 				8'h1E:begin
-					IR_speed <= IR_speed - 2'd1;
+					if(IR_speed > 2'd0)begin
+						IR_speed <= IR_speed - 2'd1;
+					end
 				end
 				8'h1F:begin
-					IR_speed <= IR_speed - 2'd1;
+					if(IR_speed > 2'd0)begin
+						IR_speed <= IR_speed - 2'd1;
+					end
 				end
 			endcase
 		end
@@ -397,7 +403,7 @@ module tetris(	clk,
 	always @(*)begin
 		case(state)
 			START:begin
-				if(!KEY_1)begin
+				if(key1_code == 8'h5A)begin
 					nextstate = NEW_SHAPE;
 				end
 				else begin
@@ -408,52 +414,52 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+4][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( (pos_y + 3) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+3][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( (pos_y + 2) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+2][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( (pos_y + 1) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+1][pos_x]==1'd1))begin
+else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( (pos_y + 0) >= 18 || board[pos_y+0][pos_x]==1'd1))begin
   nextstate = PLACE;
 end
 
@@ -720,6 +726,8 @@ end
 					if(key2_on)begin
 						case(key2_code)
 							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
+							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
+							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
 						endcase
 					end
 					else if(key1_on)begin
@@ -727,6 +735,8 @@ end
 							8'h6B: pos_x <= pos_x - 1'b1;//左
 							8'h74: pos_x <= pos_x + 1'b1;//右
 							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
+							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
+							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
 						endcase
 					end
 				end

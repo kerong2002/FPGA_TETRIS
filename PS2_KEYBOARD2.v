@@ -11,12 +11,14 @@ module PS2_KEYBOARD2(
         output reg [7:0] key2_code
     );
 	
-	parameter KEY_UP     = 8'h75;
-	parameter KEY_DWON   = 8'h72;
-	parameter KEY_LEFT   = 8'h6B;
-	parameter KEY_RIGHT  = 8'h74;
-	parameter KEY_ROTATE = 8'h12;
-	parameter KEY_BUTTON = 8'h29;
+	parameter KEY_UP    	 = 8'h75;
+	parameter KEY_DWON  	 = 8'h72;
+	parameter KEY_LEFT  	 = 8'h6B;
+	parameter KEY_RIGHT 	 = 8'h74;
+	parameter KEY_ROTATE	 = 8'h12;
+	parameter KEY_L_ROTATE 	 = 8'h1A;
+	parameter KEY_R_ROTATE   = 8'h22;
+	parameter KEY_ENTER  	 = 8'h5A;
 
     ////////////Keyboard Initially/////////
     reg [10:0] MCNT;
@@ -86,8 +88,10 @@ module PS2_KEYBOARD2(
             (keycode_o == KEY_LEFT)?1:(
             (keycode_o == KEY_RIGHT)?1:(
             (keycode_o == KEY_ROTATE)?1:(
-            (keycode_o == KEY_BUTTON)?1:0
-            )))))
+				(keycode_o == KEY_L_ROTATE)?1:(
+				(keycode_o == KEY_R_ROTATE)?1:(
+            (keycode_o == KEY_ENTER)?1:0
+            )))))))
          );
 
     //////////////key1 & key2 Assign///////////
@@ -135,11 +139,31 @@ module PS2_KEYBOARD2(
 						key2_on=1;
 						key2_code=keycode_o;
 					end
+					KEY_L_ROTATE:begin
+						key2_on=1;
+						key2_code=keycode_o;
+					end
+					KEY_R_ROTATE:begin
+						key2_on=1;
+						key2_code=keycode_o;
+					end
+					KEY_ENTER:begin
+						key1_on=1;
+						key1_code=keycode_o;
+					end
 				endcase
 			end
 			else if ((!key2_on) && (key1_code!=keycode_o))begin
 				case(keycode_o)
 					KEY_ROTATE:begin
+						key2_on=1;
+						key2_code=keycode_o;
+					end
+					KEY_L_ROTATE:begin
+						key2_on=1;
+						key2_code=keycode_o;
+					end
+					KEY_R_ROTATE:begin
 						key2_on=1;
 						key2_code=keycode_o;
 					end
