@@ -101,9 +101,9 @@ module tetris(	clk,
 	reg [6:0] score;
 	//reg [12:0] objY,objX;			//物體的座標
 	reg [12:0] X,Y;
-	wire clk10;							//除頻訊號
+	wire clk0_1s;							//除頻訊號
 	wire clk1s;							//除頻訊號
-	counterDivider #(19, 250000) cnt1(clk25M, rst, clk10);
+	counterDivider #(26, 500_0000) cnt1(clk25M, rst, clk0_1s);  //除頻500萬，相當於0.1s
 	counterDivider #(26, 5000_0000) cnt2(clk, rst, clk1s);		//除頻5000萬，相當於1s
 	
 	
@@ -123,57 +123,73 @@ module tetris(	clk,
 	assign wire_time = time_cnt;
 	//=====================<tetris data>============================
 	reg [9:0] board [23:0];       //20寬度*10高度 4個高度保留值
-	reg [3:0] pos_x;			//0~15 X座標
-	reg [4:0] pos_y;			//0~31 Y座標
+	reg [5:0] pos_x;			//0~15 X座標
+	reg signed [5:0] pos_y;			//0~31 Y座標
 	reg [2:0] shape;					//七種圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
-	parameter initial_shape_pos_x = 4'd5;
-	parameter initial_shape_pos_y = 5'd0;
+	parameter initial_shape_pos_x = 6'd4;
+	parameter initial_shape_pos_y = -6'd3;
 	/* 
 		0 -> O
 		1 -> I
 		2 -> S
 		3 -> Z
 		4 -> L
-		5 -> J\\\\\\\\\\\\\\\\\\\\\\\\\\\,,,
+		5 -> J
 		6 -> T
 	*/
 	wire [15:0] graph [27:0];
 	//O
-	assign graph[0] = {{4'b0000},{4'b0110},{4'b0110},{4'b0000}};
-	assign graph[1] = {{4'b0000},{4'b0110},{4'b0110},{4'b0000}};
-	assign graph[2] = {{4'b0000},{4'b0110},{4'b0110},{4'b0000}};
-	assign graph[3] = {{4'b0000},{4'b0110},{4'b0110},{4'b0000}};
+	assign graph[0] = {{4'b0000},{4'b0000},{4'b0011},{4'b0011}};
+	assign graph[1] = {{4'b0000},{4'b0000},{4'b0011},{4'b0011}};
+	assign graph[2] = {{4'b0000},{4'b0000},{4'b0011},{4'b0011}};
+	assign graph[3] = {{4'b0000},{4'b0000},{4'b0011},{4'b0011}};
 	//I
-	assign graph[4] = {{4'b0000},{4'b1111},{4'b0000},{4'b0000}};
-	assign graph[5] = {{4'b0010},{4'b0010},{4'b0010},{4'b0010}};
-	assign graph[6] = {{4'b0000},{4'b1111},{4'b0000},{4'b0000}};
-	assign graph[7] = {{4'b0010},{4'b0010},{4'b0010},{4'b0010}};
+	assign graph[4] = {{4'b0000},{4'b0000},{4'b0000},{4'b1111}};
+	assign graph[5] = {{4'b0001},{4'b0001},{4'b0001},{4'b0001}};
+	assign graph[6] = {{4'b0000},{4'b0000},{4'b0000},{4'b1111}};
+	assign graph[7] = {{4'b0001},{4'b0001},{4'b0001},{4'b0001}};
 	//S
-	assign graph[8] = {{4'b0000},{4'b0011},{4'b0110},{4'b0000}};
-	assign graph[9] = {{4'b0010},{4'b0011},{4'b0001},{4'b0000}};
-	assign graph[10] = {{4'b0000},{4'b0011},{4'b0110},{4'b0000}};
-	assign graph[11] = {{4'b0010},{4'b0011},{4'b0001},{4'b0000}};
+	assign graph[8] = {{4'b0000},{4'b0000},{4'b0011},{4'b0110}};
+	assign graph[9] = {{4'b0000},{4'b0010},{4'b0011},{4'b0001}};
+	assign graph[10] = {{4'b0000},{4'b0000},{4'b0011},{4'b0110}};
+	assign graph[11] = {{4'b0000},{4'b0010},{4'b0011},{4'b0001}};
 	//Z
-	assign graph[12] = {{4'b0000},{4'b0110},{4'b0011},{4'b0000}};
-	assign graph[13] = {{4'b0001},{4'b0011},{4'b0010},{4'b0000}};
-	assign graph[14] = {{4'b0000},{4'b0110},{4'b0011},{4'b0000}};
-	assign graph[15] = {{4'b0001},{4'b0011},{4'b0010},{4'b0000}};
+	assign graph[12] = {{4'b0000},{4'b0000},{4'b0110},{4'b0011}};
+	assign graph[13] = {{4'b0000},{4'b0001},{4'b0011},{4'b0010}};
+	assign graph[14] = {{4'b0000},{4'b0000},{4'b0110},{4'b0011}};
+	assign graph[15] = {{4'b0000},{4'b0001},{4'b0011},{4'b0010}};
 	//L
-	assign graph[16] = {{4'b0000},{4'b0111},{4'b0100},{4'b0000}};
-	assign graph[17] = {{4'b0010},{4'b0010},{4'b0011},{4'b0000}};
-	assign graph[18] = {{4'b0001},{4'b1111},{4'b0000},{4'b0000}};
-	assign graph[19] = {{4'b0110},{4'b0010},{4'b0010},{4'b0000}};
+	assign graph[16] = {{4'b0000},{4'b0000},{4'b0111},{4'b0100}};
+	assign graph[17] = {{4'b0000},{4'b0010},{4'b0010},{4'b0011}};
+	assign graph[18] = {{4'b0000},{4'b0000},{4'b0001},{4'b0111}};
+	assign graph[19] = {{4'b0000},{4'b0011},{4'b0001},{4'b0001}};
 	//J
-	assign graph[20] = {{4'b0000},{4'b0111},{4'b0001},{4'b0000}};
-	assign graph[21] = {{4'b0011},{4'b0010},{4'b0010},{4'b0000}};
-	assign graph[22] = {{4'b0100},{4'b0111},{4'b0000},{4'b0000}};
-	assign graph[23] = {{4'b0010},{4'b0010},{4'b0110},{4'b0000}};
+	assign graph[20] = {{4'b0000},{4'b0000},{4'b0111},{4'b0001}};
+	assign graph[21] = {{4'b0000},{4'b0011},{4'b0010},{4'b0010}};
+	assign graph[22] = {{4'b0000},{4'b0000},{4'b0100},{4'b0111}};
+	assign graph[23] = {{4'b0000},{4'b0001},{4'b0001},{4'b0011}};
 	//T
-	assign graph[23] = {{4'b0000},{4'b0111},{4'b0010},{4'b0000}};
-	assign graph[23] = {{4'b0000},{4'b0011},{4'b0010},{4'b0000}};
-	assign graph[23] = {{4'b0010},{4'b0111},{4'b0000},{4'b0000}};
-	assign graph[23] = {{4'b0010},{4'b0110},{4'b0010},{4'b0000}};
+	assign graph[24] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0010},
+	{4'b0111}};
+	assign graph[25] = {
+	{4'b0000},
+	{4'b0010},
+	{4'b0011},
+	{4'b0010}};
+	assign graph[26] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0111},
+	{4'b0000}};
+	assign graph[27] = {
+	{4'b0000},
+	{4'b0001},
+	{4'b0011},
+	{4'b0001}};
 	/*
 	reg [1:0] gameState;
    always@(*)begin
@@ -193,7 +209,7 @@ module tetris(	clk,
 		clk25M = ~clk25M;
 	
 	//===========<狀態選擇>===================
-	always @(posedge clk10,negedge rst)begin
+	always @(posedge clk0_1s,negedge rst)begin
 		if(!rst)begin
 			state <= START;
 		end
@@ -218,12 +234,15 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-				if(!KEY_1)begin
-					nextstate = NEW_SHAPE;
+				if(key1_code == 8'h12 || key2_code == 8'h12)begin
+					nextstate = SHIFT_ON;
 				end
 				else begin
 					nextstate = DECLINE;
 				end
+			end
+			SHIFT_ON:begin
+				nextstate = DECLINE;
 			end
 			default:begin
 				nextstate = START;
@@ -294,54 +313,54 @@ module tetris(	clk,
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-				if(graph[(shape<<2) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
-				else if(graph[(shape<<2) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60)begin
-						  {VGA_R,VGA_G,VGA_B}<=color[2];
-				end
+if(graph[(SW[2:0]*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
+else if(graph[(SW[2:0]*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+    {VGA_R,VGA_G,VGA_B}<=color[2];
+end
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
 					{VGA_R,VGA_G,VGA_B}<=color[3];
 				end
@@ -383,61 +402,62 @@ module tetris(	clk,
 			endcase
 		end
 	end*/
-	wire [7:0] save_key1_data;
-	assign  save_key1_data = key1_on ? key1_code : 8'b0;
+	
 	integer y;
-	always @(posedge clk1s, negedge rst)begin
+	//==============<控制board>==============
+	always@(posedge clk25M, negedge rst)begin
 		if(!rst)begin
-			shape <= 3'b000;
-			rotation_choose <= 2'd0;
 			for(y=0;y<23;y=y+1)begin
 				board[y] <= 10'b0;
 			end
-			pos_x <= 5;
-			pos_y <= 0;
+		end
+		else begin
+		
+		end
+	end
+	
+	//==============<控制左右和旋轉>===========
+	always@(posedge clk0_1s, negedge rst)begin
+		if(!rst)begin
+			pos_x <= initial_shape_pos_x;
+			rotation_choose <= 2'd0;
+		end
+		else begin
+			case(state)
+				NEW_SHAPE:begin
+					pos_x <= initial_shape_pos_x;
+					rotation_choose <= 2'd0;
+				end
+				DECLINE:begin
+					case(key1_code)
+						8'h6B: pos_x <= pos_x - 1'b1;//左
+						8'h74: pos_x <= pos_x + 1'b1;//右
+					endcase
+				end
+				SHIFT_ON:begin
+					rotation_choose <= rotation_choose + 1'b1;
+				end
+			endcase
+		end
+	end 
+
+	//================<控制向下>===========
+	always @(posedge clk1s, negedge rst)begin
+		if(!rst)begin
+			shape <= 3'd3;
+			pos_y <= initial_shape_pos_y;
 		end
 		else begin
 			case(state)
 				NEW_SHAPE:begin
 					//===========<LFSR>=============
 					shape <= {shape[1:0],shape[1]^shape[0]};
-					pos_x <= 5;
-					pos_y <= 0;
+					pos_y <= initial_shape_pos_y;
 				end
 				DECLINE:begin
-					case(save_key1_data)
-						8'h6B: pos_x <= pos_x - 1'b1;//左
-						8'h74: pos_x <= pos_x + 1'b1;//右
-					endcase
 					pos_y <= pos_y + 1'b1;//下
 				end
 			endcase
-		/*
-			board[0]  <= 10'b00_0000_0000;
-			board[1]  <= 10'b00_0000_0000;
-			board[2]  <= 10'b00_0000_0000;
-			board[3]  <= 10'b00_0000_0000;
-			board[4]  <= 10'b00_0000_0000;
-			board[5]  <= 10'b00_0000_0000;
-			board[6]  <= 10'b00_0000_0000;
-			board[7]  <= 10'b00_0000_0000;
-			board[8]  <= 10'b00_0000_0000;
-			board[9]  <= 10'b00_0000_0000;
-			board[10] <= 10'b00_0000_0000;
-			board[11] <= 10'b00_0000_0000;
-			board[12] <= 10'b00_0000_0000;
-			board[13] <= 10'b00_0000_000;
-			board[14] <= 10'b00_0000_0000;
-			board[15] <= 10'b00_0000_0000;
-			board[16] <= 10'b00_0000_0000;
-			board[17] <= 10'b00_0000_0000;
-			board[18] <= 10'b00_1010_0011;
-			board[19] <= 10'b11_1011_1011;
-		*/
-			/*
-			for(y=0;y<20;y=y+1)begin
-					board[y] <= 10'b1111111111;
-			end*/
 		end	
 	end
 	
