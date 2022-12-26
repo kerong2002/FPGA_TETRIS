@@ -46,7 +46,7 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
     wire [3:0] point__10;
     wire [3:0] point___1;
     binToBcd4 pointBcd(
-        {5'b0, timeNum},
+        {9'b0, point},
         {point1000, point_100, point__10, point___1}
     );
 
