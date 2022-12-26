@@ -1,3 +1,4 @@
+`include "./binToBcd.v"
 
 `define displayregLine2 {LCD_L[9],LCD_L[8],LCD_L[7],LCD_L[6],LCD_L[5],LCD_L[4],LCD_L[3],LCD_L[2],LCD_L[1],LCD_L[0],displayreg[16],displayreg[17],displayreg[18],displayreg[19],displayreg[20],displayreg[21],displayreg[22],displayreg[23],displayreg[24],displayreg[25],displayreg[26],displayreg[27],displayreg[28],displayreg[29],displayreg[30],displayreg[31],LCD_R[9],LCD_R[8],LCD_R[7],LCD_R[6],LCD_R[5],LCD_R[4],LCD_R[3],LCD_R[2],LCD_R[1],LCD_R[0],LCD_B[15],LCD_B[14],LCD_B[13],LCD_B[12],LCD_B[11],LCD_B[10],LCD_B[9],LCD_B[8],LCD_B[7],LCD_B[6],LCD_B[5],LCD_B[4],LCD_B[3],LCD_B[2],LCD_B[1],LCD_B[0]}
 
@@ -15,13 +16,48 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
     output wire [8:0] LEDG;
     input [1:0] gameState;
     wire  [127:0] gameStr[2:0];
-    input [6:0] timeNum;
+    input [9:0] timeNum;
     input [6:0] point;
 
-
-    assign gameStr[0]    = { {5{8'h20}}, 40'h53_54_41_52_54,    {6{8'h20}} };
-    assign gameStr[1]   = { {5{8'h20}}, 48'h47_41_4D_49_4E_47, {5{8'h20}} };
+    assign gameStr[0] = { {5{8'h20}}, 40'h53_54_41_52_54,    {6{8'h20}} };
+    assign gameStr[1] = { {5{8'h20}}, 48'h47_41_4D_49_4E_47, {5{8'h20}} };
     assign gameStr[2] = { {3{8'h20}}, 32'h47_41_4D_45, 8'h20, 32'h_4F_56_45_52 , {4{8'h20}} };
+
+    wire [3:0] time1000Num;
+    wire [3:0] time_100Num;
+    wire [3:0] time__10Num;
+    wire [3:0] time___1Num;
+    binToBcd4 timeBcd(
+        {5'b0, timeNum},
+        {time1000Num, time_100Num, time__10Num, time___1Num}
+    );
+
+    wire [3:0] time1000ascii;
+    wire [3:0] time_100ascii;
+    wire [3:0] time__10ascii;
+    wire [3:0] time___1ascii;
+    assign time1000ascii = time1000Num + 8'h30;
+    assign time_100ascii = time_100Num + 8'h30;
+    assign time__10ascii = time__10Num + 8'h30;
+    assign time___1ascii = time___1Num + 8'h30;
+
+    wire [3:0] point1000;
+    wire [3:0] point_100;
+    wire [3:0] point__10;
+    wire [3:0] point___1;
+    binToBcd4 pointBcd(
+        {5'b0, timeNum},
+        {point1000, point_100, point__10, point___1}
+    );
+
+    wire [3:0] point1000ascii;
+    wire [3:0] point_100ascii;
+    wire [3:0] point__10ascii;
+    wire [3:0] point___1ascii;
+    assign point1000ascii = point1000 + 8'h30;
+    assign point_100ascii = point_100 + 8'h30;
+    assign point__10ascii = point__10 + 8'h30;
+    assign point___1ascii = point___1 + 8'h30;
 
     reg     [3:0]   state, next_command;
     // Enter new ASCII hex data above for LCD Display
@@ -136,7 +172,7 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
                     // Jump to second line?
                     if (CHAR_COUNT == 15)
                         next_command <= LINE2;
-                    // Return to first line?
+                        // Return to first line?
                     else if (CHAR_COUNT == 31)
                         next_command <= RETURN_HOME;
                     else
@@ -213,19 +249,21 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
     always @(posedge Clk or negedge rst)begin
         if (!rst)begin
             `lcdLine1 <= gameStr[gameState];
-            `lcdLine2 <= {"TIME:",
-                {timeNum/8'd10 + 8'h30, timeNum%8'd10 + 8'h30},
-                " POINT:",
-                {point/8'd10 + 8'h30, point%8'd10 + 8'h30}
+            `lcdLine2 <= {
+                "TIME:",
+                {time_100ascii, time__10ascii, time___1ascii },
+                "POINT:",
+                {point__10ascii, point___1ascii },
             };
 
             //TIME:30 POINT:00;
         end else begin
             `lcdLine1 <= gameStr[gameState];
-            `lcdLine2 <= {"TIME:",
-                {timeNum/8'd10 + 8'h30, timeNum%8'd10 + 8'h30},
-                " POINT:",
-                {point/8'd10 + 8'h30, point%8'd10 + 8'h30}
+            `lcdLine2 <= {
+               "TIME:",
+                {time_100ascii, time__10ascii, time___1ascii },
+                "POINT:",
+                {point__10ascii, point___1ascii },
             };
         end
     end
