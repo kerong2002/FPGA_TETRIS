@@ -44,3 +44,5 @@ FPGA_TETRIS
 - 5 T圖形資料更改
 - 6 左右keyboard選轉更新
 - 7 enter 觸發開始
+- 8 方塊疊加
+- 9 方塊放置判定
