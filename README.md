@@ -3,7 +3,7 @@ FPGA_TETRIS
 ## 操做說明
 |KEY_BOARD|操作|KEY_BOARD|操作|
 |:-:|:-:|:-:|:-:|
-|left|向左移動|right|向右|
+|left|向左移動|right|向右移動|
 |z|左轉|x|右轉|
 |shift|左轉|||
 
