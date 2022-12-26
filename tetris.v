@@ -647,7 +647,7 @@ module tetris(	clk,
 		end
 	end
 	
-	always @(posedge , negedge rst)begin
+	always @(posedge first_clk_10, negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 7'd0;
 		end
