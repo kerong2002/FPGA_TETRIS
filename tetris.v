@@ -207,7 +207,7 @@ module tetris(	clk,
 	
 	//=====================<tetris data>============================
 	reg [9:0] board [23:0];       //20寬度*10高度 4個高度保留值
-	//reg [9:0] check_board [23:0]; //檢測消除的board
+	reg [9:0] check_board [23:0]; //檢測消除的board
 	reg [5:0] pos_x;			//0~15 X座標
 	reg signed [5:0] pos_y;			//0~31 Y座標
 	reg [4:0] shape;					//七種圖形
@@ -395,20 +395,21 @@ module tetris(	clk,
 	{4'b0011},
 	{4'b0011}};
 
-	/*
+
 	reg [1:0] gameState;
    always@(*)begin
       case(state)
-			START : gameState = 0;
-			UP    ,
-			DOWN  ,
-			LEFT  ,
-			RIGHT : gameState = 1;
-			END   : gameState = 2;
+			START      : gameState = 0;
+			NEW_SHAPE  : gameState = 1;
+			DECLINE    : gameState = 1;
+			SHIFT_ON   : gameState = 1;
+			REMOVE     : gameState = 1;
+			PLACE      : gameState = 1;
+			DIED       : gameState = 2;
 	  endcase
 	end
 	LCD lcd1(clk, rst, state, wire_time, wire_score,  , LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
-	*/
+	
 	
 	always@(posedge clk)
 		clk25M = ~clk25M;
@@ -439,54 +440,54 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+2]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+1]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+0]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+3]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+2]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+1]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+0]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+3]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+2]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+1]==1'b1)))begin
-  nextstate = PLACE;
-end
-else if(graph[(shape<<2) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+0]==1'b1)))begin
-  nextstate = PLACE;
-end
+				if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+2]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+1]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+0]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+3]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+2]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+1]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+0]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+3]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+2]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+1]==1'b1)))begin
+				  nextstate = PLACE;
+				end
+				else if(graph[(shape<<2) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+0]==1'b1)))begin
+				  nextstate = PLACE;
+				end
 
 				/*else if(key1_code == 8'h12 || key2_code == 8'h12)begin
 					nextstate = SHIFT_ON;
@@ -499,6 +500,9 @@ end
 				nextstate = DECLINE;
 			end*/
 			PLACE:begin
+				nextstate = REMOVE;
+			end
+			REMOVE:begin
 				nextstate = NEW_SHAPE;
 			end
 			default:begin
@@ -637,40 +641,30 @@ end
 
 		end
 	end
-	/*
-	always @(posedge IR_CLK_10S,negedge rst)begin
+	
+	always @(posedge first_clk_10, negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 7'd0;
 		end
 		else begin
 			case(state)
-				START:begin
-					case(SW[1:0])
-						2'b00:time_cnt <= 7'd10;
-						2'b01:time_cnt <= 7'd30;
-						2'b10:time_cnt <= 7'd60;
-						2'b11:time_cnt <= 7'd90;
-					endcase
-				end
-				UP    : time_cnt <= time_cnt - 7'd1;
-				DOWN  : time_cnt <= time_cnt - 7'd1;
-				LEFT  : time_cnt <= time_cnt - 7'd1;
-				RIGHT : time_cnt <= time_cnt - 7'd1;
-				END   : time_cnt <= 7'd0;
-				default:time_cnt <= 7'd0;
+				START   : time_cnt <= 7'd0;
+				DIED    : time_cnt <= time_cnt;
+				default : time_cnt <= time_cnt + 7'd1;
 			endcase
 		end
-	end*/
+	end
 	integer y,x;
-	/*
+	
 	reg [4:0] remove_cnt;
 	//=============<檢測board>===============
-	always @(posedge clk, negedge rst)begin
+	always @(posedge IR_CLK_10S, negedge rst)begin
 		if(!rst)begin
 			for(y=0;y<=23;y=y+1)begin
 				check_board [y] <= 10'b0;
 			end
 			remove_cnt <= 5'd23;
+			score <= 7'd0;
 		end
 		else begin
 			case(state)
@@ -679,13 +673,17 @@ end
 						check_board [y] <= 10'b0;
 					end
 					remove_cnt <= 5'd23;
+					score <= 7'd0;
 				end
 				NEW_SHAPE:begin
 					remove_cnt <= 5'd23;
 				end
-				PLACE:begin
+				REMOVE:begin
 					for(y=23;y>=0;y=y-1)begin
-						if((|board[y])!=1)begin
+						if((&{board[y]})==1)begin
+							score <= score + 7'd1;
+						end
+						else begin
 							check_board[remove_cnt] <= board[y];
 							remove_cnt <= remove_cnt - 5'd1;
 						end
@@ -694,7 +692,7 @@ end
 			endcase
 		end
 	end
-	*/
+	
 	//==============<控制board>==============
 	always@(posedge clk, negedge rst)begin
 		if(!rst)begin
@@ -705,62 +703,11 @@ end
 		else begin
 			case(state)
 				NEW_SHAPE:begin
-		//			for(y=0;y<=23;y=y+1)begin
-		//				board[y] <= check_board[y];
-		//			end
+					for(y=0;y<=23;y=y+1)begin
+						board[y] <= check_board[y];
+					end
 				end
 				PLACE:begin
-				/*
-if(graph[(shape*4) + rotation_choose][15]==1'b1)begin
-  board[pos_y + 3+4][pos_x + 3] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][14]==1'b1)begin
-  board[pos_y + 3+4][pos_x + 2] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][13]==1'b1)begin
-  board[pos_y + 3+4][pos_x + 1] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][12]==1'b1)begin
-  board[pos_y + 3+4][pos_x + 0] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][11]==1'b1)begin
-  board[pos_y + 2+4][pos_x + 3] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][10]==1'b1)begin
-  board[pos_y + 2+4][pos_x + 2] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][9]==1'b1)begin
-  board[pos_y + 2+4][pos_x + 1] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][8]==1'b1)begin
-  board[pos_y + 2+4][pos_x + 0] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][7]==1'b1)begin
-  board[pos_y + 1+4][pos_x + 3] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][6]==1'b1)begin
-  board[pos_y + 1+4][pos_x + 2] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][5]==1'b1)begin
-  board[pos_y + 1+4][pos_x + 1] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][4]==1'b1)begin
-  board[pos_y + 1+4][pos_x + 0] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][3]==1'b1)begin
-  board[pos_y + 0+4][pos_x + 3] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][2]==1'b1)begin
-  board[pos_y + 0+4][pos_x + 2] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][1]==1'b1)begin
-  board[pos_y + 0+4][pos_x + 1] <= 1'b1;
-end
-if(graph[(shape*4) + rotation_choose][0]==1'b1)begin
-  board[pos_y + 0+4][pos_x + 0] <= 1'b1;
-end
-*/
-				
 					for(y=3;y>=0;y=y-1)begin
 						for(x=3;x>=0;x=x-1)begin
 							if(graph[(shape<<2) + rotation_choose][(y<<2)+x]==1'b1)begin
