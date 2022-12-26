@@ -700,6 +700,8 @@ module tetris(	clk,
 						if(&board[remove_cnt]!=1)begin
 							check_board[remove_pos] <= board[remove_cnt];
 							remove_pos <= remove_pos - 5'd1;
+						end
+						else begin
 							score <= score + 7'd1;
 						end
 						remove_cnt <= remove_cnt - 5'd1;
