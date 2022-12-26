@@ -210,6 +210,7 @@ module tetris(	clk,
 	reg [5:0] pos_x;			//0~15 X座標
 	reg signed [5:0] pos_y;			//0~31 Y座標
 	reg [2:0] shape;					//七種圖形
+	reg [2:0] n_shape;				//下一個圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
 	parameter initial_shape_pos_x = 6'd4;
 	parameter initial_shape_pos_y = 6'd0;
@@ -222,7 +223,7 @@ module tetris(	clk,
 		5 -> J
 		6 -> T
 	*/
-	wire [15:0] graph [27:0];
+	wire [15:0] graph [31:0];
 	//O
 	assign graph[0] = {
 	{4'b0000},
@@ -370,6 +371,28 @@ module tetris(	clk,
 	{4'b0010},
 	{4'b0011},
 	{4'b0010}};
+	
+	//O  overflow
+	assign graph[28] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0011},
+	{4'b0011}};
+	assign graph[29] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0011},
+	{4'b0011}};
+	assign graph[30] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0011},
+	{4'b0011}};
+	assign graph[31] = {
+	{4'b0000},
+	{4'b0000},
+	{4'b0011},
+	{4'b0011}};
 
 	/*
 	reg [1:0] gameState;
@@ -530,12 +553,13 @@ end
 
 	reg [23:0]color[5:0];	//顏色區塊
 	//========<設定遊戲布局大小和邊框>===========
-	parameter Board_min_X   = 13'd245;
-	parameter Board_max_X   = 13'd395;
-	parameter Board_min_Y	= 13'd40;
-	parameter Board_max_Y   = 13'd440;
-	parameter Board_frame   = 13'd5;
-	
+	parameter Board_min_X     = 13'd245;
+	parameter Board_max_X     = 13'd395;
+	parameter Board_min_Y	  = 13'd40;
+	parameter Board_max_Y     = 13'd440;
+	parameter Board_frame     = 13'd5;
+	parameter Board_N_shape_X = 13'd470;
+	parameter Board_N_shape_Y = 13'd70;
 	integer i,j;
 	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
 	//===========<螢幕上色>=================
@@ -599,6 +623,57 @@ end
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=color[4];
+				end
+			end
+			//next_shape
+			else if(X>= Board_N_shape_X && Y>= Board_N_shape_Y)begin
+				if(graph[(n_shape*4) + rotation_choose][0]==1'b1 && X>=470 && X<485 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][1]==1'b1 && X>=485 && X<500 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][2]==1'b1 && X>=500 && X<515 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][3]==1'b1 && X>=515 && X<530 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][4]==1'b1 && X>=470 && X<485 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][5]==1'b1 && X>=485 && X<500 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][6]==1'b1 && X>=500 && X<515 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][7]==1'b1 && X>=515 && X<530 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][8]==1'b1 && X>=470 && X<485 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][9]==1'b1 && X>=485 && X<500 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][10]==1'b1 && X>=500 && X<515 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][11]==1'b1 && X>=515 && X<530 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][12]==1'b1 && X>=470 && X<485 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][13]==1'b1 && X>=485 && X<500 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][14]==1'b1 && X>=500 && X<515 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape*4) + rotation_choose][15]==1'b1 && X>=515 && X<530 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
 				end
 			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
@@ -733,8 +808,12 @@ end
 					end
 					else if(key1_on)begin
 						case(key1_code)
-							8'h6B: pos_x <= pos_x - 1'b1;//左
-							8'h74: pos_x <= pos_x + 1'b1;//右
+							8'h6B: begin
+								if(pos_x > 0)begin					//左邊界限制
+									pos_x <= pos_x - 1'b1; //向左
+								end
+							end
+							8'h74: pos_x <= pos_x + 1'b1;//向右
 							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
 							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
 							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
@@ -750,12 +829,14 @@ end
 		if(!rst)begin
 			shape <= 3'd3;
 			pos_y <= initial_shape_pos_y;
+			n_shape <= 3'd6;
 		end
 		else begin
 			case(state)
 				NEW_SHAPE:begin
 					//===========<LFSR>=============
-					shape <= {shape[1:0],shape[1]^shape[0]};
+					shape   <= {shape[1],   shape[2]^shape[0],     shape[1]^shape[0]};
+					n_shape <= {n_shape[1], n_shape[2]^n_shape[0], n_shape[1]^n_shape[0]};
 					pos_y <= initial_shape_pos_y;
 				end
 				DECLINE:begin
