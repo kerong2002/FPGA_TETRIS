@@ -415,52 +415,52 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+3]==1'b1)))begin
+if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+4][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+2]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+4][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+1]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+4][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+3][pos_x+0]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+4][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+3]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+4][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+2]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+4][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+1]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+4][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+2][pos_x+0]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+4][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+3]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+4][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+2]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+4][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+1]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+4][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+1][pos_x+0]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+4][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+3]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+4][pos_x+3]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+2]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+4][pos_x+2]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+1]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+4][pos_x+1]==1'b1)))begin
   nextstate = PLACE;
 end
-else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+0][pos_x+0]==1'b1)))begin
+else if(graph[(shape*4) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+4][pos_x+0]==1'b1)))begin
   nextstate = PLACE;
 end
 
@@ -701,7 +701,7 @@ end
 					for(y=3;y>=0;y=y-1)begin
 						for(x=3;x>=0;x=x-1)begin
 							if(graph[(shape*4) + rotation_choose][(y<<2)+x]==1'b1)begin
-							  board[pos_y + y+4][pos_x + x] <= 1'b1;
+							  board[pos_y + y + 4][pos_x + x] <= 1'b1;//位置要往下放4個
 							end
 						end
 					end
