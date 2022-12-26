@@ -93,7 +93,7 @@ module tetris(	clk,
 	parameter H_FRONT = 16;
 	parameter H_SYNC  = 96;
 	parameter H_BACK  = 48;
-	parameter H_ACT   = 640;//
+	parameter H_ACT   = 640;
 	parameter H_BLANK = H_FRONT + H_SYNC + H_BACK;
 	parameter H_TOTAL = H_FRONT + H_SYNC + H_BACK + H_ACT;
 	reg [6:0] time_cnt;
@@ -167,7 +167,7 @@ module tetris(	clk,
 	wire first_clk_1;
 	wire first_clk_10;
 	//======================<第一組速度>=====================
-	counterDivider #(23,  500_0000)  cnt_first_1(clk25M, rst, first_clk_1);  	//除頻500萬，操作速度相當於0.2s
+	counterDivider #(23,  500_0000)  cnt_first_1(clk25M, rst, first_clk_1);  	//除頻500萬，操作速度相當於0.1as
 	counterDivider #(26, 5000_0000) cnt_first_10(clk  , rst, first_clk_10);		//除頻5000萬
 	
 	wire second_clk_1;
@@ -399,13 +399,13 @@ module tetris(	clk,
 	reg [1:0] gameState;
    always@(*)begin
       case(state)
-			START      : gameState = 0;
-			NEW_SHAPE  : gameState = 1;
-			DECLINE    : gameState = 1;
-			SHIFT_ON   : gameState = 1;
-			REMOVE     : gameState = 1;
-			PLACE      : gameState = 1;
-			DIED       : gameState = 2;
+			START      : gameState = 2'd0;
+			NEW_SHAPE  : gameState = 2'd1;
+			DECLINE    : gameState = 2'd1;
+			SHIFT_ON   : gameState = 2'd1;
+			REMOVE     : gameState = 2'd1;
+			PLACE      : gameState = 2'd1;
+			DIED       : gameState = 2'd2;
 	  endcase
 	end
 	LCD lcd1(clk, rst, gameState, wire_time, wire_score,  , LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
@@ -440,19 +440,19 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-				if(graph[(shape*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
+				if(graph[(shape<<2) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
+				else if(graph[(shape<<2) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
+				else if(graph[(shape<<2) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
+				else if(graph[(shape<<2) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
+				else if(graph[(shape<<2) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
 				else if(graph[(shape<<2) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+2]==1'b1)))begin
@@ -503,7 +503,12 @@ module tetris(	clk,
 				nextstate = REMOVE;
 			end
 			REMOVE:begin
-				nextstate = NEW_SHAPE;
+				if(remove_cnt<=3)begin
+					nextstate = NEW_SHAPE;
+				end
+				else begin
+					nextstate = REMOVE;
+				end
 			end
 			default:begin
 				nextstate = START;
@@ -656,14 +661,16 @@ module tetris(	clk,
 	end
 	integer y,x;
 	
-	reg [4:0] remove_cnt;
+	reg [4:0] remove_cnt;			//移除時序
+	reg [4:0] remove_pos;			//移除位置
 	//=============<檢測board>===============
-	always @(posedge IR_CLK_10S, negedge rst)begin
+	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
 			for(y=0;y<=23;y=y+1)begin
 				check_board [y] <= 10'b0;
 			end
 			remove_cnt <= 5'd23;
+			remove_pos <= 5'd23;
 			score <= 7'd0;
 		end
 		else begin
@@ -673,20 +680,20 @@ module tetris(	clk,
 						check_board [y] <= 10'b0;
 					end
 					remove_cnt <= 5'd23;
+					remove_pos <= 5'd23;
 					score <= 7'd0;
 				end
 				NEW_SHAPE:begin
 					remove_cnt <= 5'd23;
+					remove_pos <= 5'd23;
 				end
 				REMOVE:begin
-					for(y=23;y>=0;y=y-1)begin
-						if(&board[y]==1)begin
-							score <= score + 7'd1;
+					if(remove_cnt>3)begin
+						if(&board[remove_cnt]!=1)begin
+							check_board[remove_pos] <= board[remove_cnt];
+							remove_pos <= remove_pos - 5'd1;
 						end
-						else begin
-							check_board[remove_cnt] <= board[y];
-							remove_cnt <= remove_cnt - 5'd1;
-						end
+						remove_cnt <= remove_cnt - 5'd1;
 					end
 				end
 			endcase
