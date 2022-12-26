@@ -18,13 +18,10 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
     input [6:0] timeNum;
     input [6:0] point;
 
-    parameter start = 2'd0;
-    parameter gaming = 2'd1;
-    parameter gameOver = 2'd2;
 
-    assign gameStr[start]    = { {5{8'h20}}, 40'h53_54_41_52_54,    {6{8'h20}} };
-    assign gameStr[gaming]   = { {5{8'h20}}, 48'h47_41_4D_49_4E_47, {5{8'h20}} };
-    assign gameStr[gameOver] = { {3{8'h20}}, 32'h47_41_4D_45, 8'h20, 32'h_4F_56_45_52 , {4{8'h20}} };
+    assign gameStr[0]    = { {5{8'h20}}, 40'h53_54_41_52_54,    {6{8'h20}} };
+    assign gameStr[1]   = { {5{8'h20}}, 48'h47_41_4D_49_4E_47, {5{8'h20}} };
+    assign gameStr[2] = { {3{8'h20}}, 32'h47_41_4D_45, 8'h20, 32'h_4F_56_45_52 , {4{8'h20}} };
 
     reg     [3:0]   state, next_command;
     // Enter new ASCII hex data above for LCD Display
