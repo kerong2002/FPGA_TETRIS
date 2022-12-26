@@ -1,5 +1,7 @@
 # FPGA_TETRIS
 FPGA_TETRIS
+### 樣式圖
+![image](https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris_%E6%A8%A3%E5%BC%8F.jpg)
 ## 操做說明
 |KEY_BOARD|操作|KEY_BOARD|操作|
 |:-:|:-:|:-:|:-:|
