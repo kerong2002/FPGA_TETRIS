@@ -32,10 +32,10 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
         {time1000Num, time_100Num, time__10Num, time___1Num}
     );
 
-    wire [3:0] time1000ascii;
-    wire [3:0] time_100ascii;
-    wire [3:0] time__10ascii;
-    wire [3:0] time___1ascii;
+    wire [7:0] time1000ascii;
+    wire [7:0] time_100ascii;
+    wire [7:0] time__10ascii;
+    wire [7:0] time___1ascii;
     assign time1000ascii = time1000Num + 8'h30;
     assign time_100ascii = time_100Num + 8'h30;
     assign time__10ascii = time__10Num + 8'h30;
@@ -50,10 +50,10 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
         {point1000, point_100, point__10, point___1}
     );
 
-    wire [3:0] point1000ascii;
-    wire [3:0] point_100ascii;
-    wire [3:0] point__10ascii;
-    wire [3:0] point___1ascii;
+    wire [7:0] point1000ascii;
+    wire [7:0] point_100ascii;
+    wire [7:0] point__10ascii;
+    wire [7:0] point___1ascii;
     assign point1000ascii = point1000 + 8'h30;
     assign point_100ascii = point_100 + 8'h30;
     assign point__10ascii = point__10 + 8'h30;
