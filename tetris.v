@@ -96,8 +96,8 @@ module tetris(	clk,
 	parameter H_ACT   = 640;
 	parameter H_BLANK = H_FRONT + H_SYNC + H_BACK;
 	parameter H_TOTAL = H_FRONT + H_SYNC + H_BACK + H_ACT;
-	reg [6:0] time_cnt;
-	reg [6:0] score;
+	reg [9:0] time_cnt;				//時間
+	reg [6:0] score;					//分數
 	//reg [12:0] objY,objX;			//物體的座標
 	reg [12:0] X,Y;
 	wire IR_CLK_1S;						//除頻訊號1
@@ -199,7 +199,7 @@ module tetris(	clk,
 	assign VGA_CLOCK = ~clk25M;
 	
 	//================<LCD顯示資料>===================
-	wire [6:0] wire_time;
+	wire [9:0] wire_time;
 	wire [6:0] wire_score;
 	assign wire_score = score;
 	assign wire_time = time_cnt;
@@ -214,7 +214,7 @@ module tetris(	clk,
 	//reg [2:0] n_shape;				//下一個圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
 	parameter initial_shape_pos_x = 6'd4;
-	parameter initial_shape_pos_y = 6'd0;
+	parameter initial_shape_pos_y = -6'd3;
 	/* 
 		0 -> O
 		1 -> I
@@ -500,7 +500,12 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end*/
 			PLACE:begin
-				nextstate = REMOVE;
+				if(|board[4])begin
+					nextstate = DIED;
+				end
+				else begin
+					nextstate = REMOVE;
+				end
 			end
 			REMOVE:begin
 				if(remove_cnt<=3)begin
@@ -509,6 +514,9 @@ module tetris(	clk,
 				else begin
 					nextstate = REMOVE;
 				end
+			end
+			DIED:begin
+				nextstate = DIED;
 			end
 			default:begin
 				nextstate = START;
@@ -649,13 +657,13 @@ module tetris(	clk,
 	
 	always @(posedge first_clk_10, negedge rst)begin
 		if(!rst)begin
-			time_cnt <= 7'd0;
+			time_cnt <= 10'd0;
 		end
 		else begin
 			case(state)
-				START   : time_cnt <= 7'd0;
+				START   : time_cnt <= 10'd0;
 				DIED    : time_cnt <= time_cnt;
-				default : time_cnt <= time_cnt + 7'd1;
+				default : time_cnt <= time_cnt + 10'd1;
 			endcase
 		end
 	end
@@ -692,6 +700,7 @@ module tetris(	clk,
 						if(&board[remove_cnt]!=1)begin
 							check_board[remove_pos] <= board[remove_cnt];
 							remove_pos <= remove_pos - 5'd1;
+							score <= score + 7'd1;
 						end
 						remove_cnt <= remove_cnt - 5'd1;
 					end
