@@ -408,7 +408,7 @@ module tetris(	clk,
 			DIED       : gameState = 2;
 	  endcase
 	end
-	LCD lcd1(clk, rst, state, wire_time, wire_score,  , LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
+	LCD lcd1(clk, rst, gameState, wire_time, wire_score,  , LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
 	
 	
 	always@(posedge clk)
@@ -642,7 +642,7 @@ module tetris(	clk,
 		end
 	end
 	
-	always @(posedge first_clk_10, negedge rst)begin
+	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 7'd0;
 		end
@@ -680,7 +680,7 @@ module tetris(	clk,
 				end
 				REMOVE:begin
 					for(y=23;y>=0;y=y-1)begin
-						if((&{board[y]})==1)begin
+						if(&board[y]==1)begin
 							score <= score + 7'd1;
 						end
 						else begin
@@ -703,7 +703,7 @@ module tetris(	clk,
 		else begin
 			case(state)
 				NEW_SHAPE:begin
-					for(y=0;y<=23;y=y+1)begin
+					for(y=23;y>=0;y=y-1)begin
 						board[y] <= check_board[y];
 					end
 				end
