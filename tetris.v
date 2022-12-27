@@ -871,8 +871,8 @@ module tetris(	clk,
 			case(state)
 				NEW_SHAPE:begin
 					//===========<LFSR>=============
-					shape   <= {2'd0, shape[1],   shape[2]^shape[0],     shape[1]^shape[0]};
-					n_shape <= {2'd0, n_shape[1], n_shape[2]^n_shape[0], n_shape[1]^n_shape[0]};
+					shape   <= {shape[2]^shape[0],     shape[3]^shape[1],     shape[0],   shape[2]^shape[3],     shape[1]^shape[4]};
+					n_shape <= {n_shape[2]^n_shape[0], n_shape[3]^n_shape[1], n_shape[0], n_shape[2]^n_shape[3], n_shape[1]^n_shape[4]};
 					pos_y <= initial_shape_pos_y;
 				end
 				DECLINE:begin
