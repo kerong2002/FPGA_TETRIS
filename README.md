@@ -11,7 +11,7 @@ FPGA_TETRIS
 |:-:|:-:|:-:|:-:|
 |left|向左移動|right|向右移動|
 |z|左轉|x|右轉|
-|shift|左轉|||
+|shift|左轉|ENTER|開始遊戲|
 
 1. IR -> 速度調整
 2. VGA -> 顯示畫面
