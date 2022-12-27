@@ -211,7 +211,7 @@ module tetris(	clk,
 	reg [5:0] pos_x;			//0~15 X座標
 	reg signed [5:0] pos_y;			//0~31 Y座標
 	reg [4:0] shape;					//七種圖形
-	//reg [2:0] n_shape;				//下一個圖形
+	reg [4:0] n_shape;				//下一個圖形
 	reg [1:0] rotation_choose;    //選擇的選轉
 	parameter initial_shape_pos_x = 6'd4;
 	parameter initial_shape_pos_y = -6'd3;
@@ -373,27 +373,27 @@ module tetris(	clk,
 	{4'b0011},
 	{4'b0010}};
 	
-	//O  overflow
+	//T overflow
 	assign graph[28] = {
 	{4'b0000},
 	{4'b0000},
-	{4'b0011},
-	{4'b0011}};
+	{4'b0010},
+	{4'b0111}};
 	assign graph[29] = {
 	{4'b0000},
-	{4'b0000},
+	{4'b0001},
 	{4'b0011},
-	{4'b0011}};
+	{4'b0001}};
 	assign graph[30] = {
 	{4'b0000},
 	{4'b0000},
-	{4'b0011},
-	{4'b0011}};
+	{4'b0111},
+	{4'b0010}};
 	assign graph[31] = {
 	{4'b0000},
-	{4'b0000},
+	{4'b0010},
 	{4'b0011},
-	{4'b0011}};
+	{4'b0010}};
 
 
 	reg [1:0] gameState;
@@ -576,8 +576,10 @@ module tetris(	clk,
 	parameter Board_min_Y	  = 13'd40;
 	parameter Board_max_Y     = 13'd440;
 	parameter Board_frame     = 13'd5;
-	parameter Board_N_shape_X = 13'd470;
-	parameter Board_N_shape_Y = 13'd70;
+	parameter Board_N_shape_min_X = 13'd450;
+	parameter Board_N_shape_max_X	= 13'd510;
+	parameter Board_N_shape_min_Y = 13'd70;
+	parameter Board_N_shape_max_Y = 13'd150;
 	integer i,j;
 	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
 	//===========<螢幕上色>=================
@@ -644,6 +646,59 @@ module tetris(	clk,
 				end
 			end
 			//next_shape
+			else if(X>=Board_N_shape_min_X && X<Board_N_shape_max_X && Y>=Board_N_shape_min_Y && Y<Board_N_shape_max_Y)begin
+				if(graph[(n_shape<<2)][0]==1'b1 && X>=450 && X<465 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][1]==1'b1 && X>=465 && X<480 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][2]==1'b1 && X>=480 && X<495 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][3]==1'b1 && X>=495 && X<510 && Y>=70 && Y<90)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][4]==1'b1 && X>=450 && X<465 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][5]==1'b1 && X>=465 && X<480 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][6]==1'b1 && X>=480 && X<495 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][7]==1'b1 && X>=495 && X<510 && Y>=90 && Y<110)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][8]==1'b1 && X>=450 && X<465 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][9]==1'b1 && X>=465 && X<480 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][10]==1'b1 && X>=480 && X<495 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][11]==1'b1 && X>=495 && X<510 && Y>=110 && Y<130)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][12]==1'b1 && X>=450 && X<465 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][13]==1'b1 && X>=465 && X<480 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][14]==1'b1 && X>=480 && X<495 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else if(graph[(n_shape<<2)][15]==1'b1 && X>=495 && X<510 && Y>=130 && Y<150)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[2];
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+				end
+			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
 				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
 			end
@@ -761,12 +816,40 @@ module tetris(	clk,
 					end
 					else if(key1_on)begin
 						case(key1_code)
-							8'h6B: begin
-								if(pos_x > 0)begin					//左邊界限制
+							8'h6B:begin
+								if(pos_x > 5'd0)begin					//左邊界限制
 									pos_x <= pos_x - 1'b1; //向左
 								end
 							end
-							8'h74: pos_x <= pos_x + 1'b1;//向右
+							8'h74:begin									//右邊界限制
+								if(shape == 5'd0 && pos_x <6'd8)begin		//O
+									pos_x <= pos_x + 1'b1;//向右
+								end
+								else if(shape == 5'd1)begin					//I
+									if(rotation_choose[0]==0)begin
+										if(pos_x < 6'd6)begin
+											pos_x <= pos_x + 1'b1;//向右
+										end
+									end
+									else begin
+										if(pos_x < 6'd9)begin
+											pos_x <= pos_x + 1'b1;//向右
+										end
+									end
+								end
+								else begin											//otherwise
+									if(rotation_choose[0]==0)begin
+										if(pos_x < 6'd7)begin
+											pos_x <= pos_x + 1'b1;//向右
+										end
+									end
+									else begin
+										if(pos_x < 6'd8)begin
+											pos_x <= pos_x + 1'b1;//向右
+										end
+									end
+								end
+							end
 							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
 							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
 							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
@@ -782,14 +865,14 @@ module tetris(	clk,
 		if(!rst)begin
 			shape <= 5'd3;
 			pos_y <= initial_shape_pos_y;
-			//n_shape <= 3'd6;
+			n_shape <= 5'd6;
 		end
 		else begin
 			case(state)
 				NEW_SHAPE:begin
 					//===========<LFSR>=============
 					shape   <= {2'd0, shape[1],   shape[2]^shape[0],     shape[1]^shape[0]};
-					//n_shape <= {n_shape[1], n_shape[2]^n_shape[0], n_shape[1]^n_shape[0]};
+					n_shape <= {2'd0, n_shape[1], n_shape[2]^n_shape[0], n_shape[1]^n_shape[0]};
 					pos_y <= initial_shape_pos_y;
 				end
 				DECLINE:begin
