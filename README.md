@@ -2,6 +2,8 @@
 FPGA_TETRIS
 ### 樣式圖
 <img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris_%E6%A8%A3%E5%BC%8F.jpg" alt="krameri120's TETRIS" width="46%" />
+### 方塊圖
+<img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris_shape_cut.PNG" alt="krameri120's TETRIS" width="46%" />
 
 ## 操作說明！
 |KEY_BOARD|操作|KEY_BOARD|操作|
