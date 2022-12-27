@@ -794,7 +794,250 @@ module tetris(	clk,
 			endcase
 		end
 	end
-
+	
+	reg check_left_point;//檢測向左
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			check_left_point	<= 1'b1;
+		end
+		else begin
+			case(state)
+				DECLINE:begin
+					if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x-1])begin
+						check_left_point	<= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x-1])begin
+						check_left_point	<= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x-1])begin
+						check_left_point	<= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x-1])begin
+						check_left_point	<= 1'b0;
+					end
+					else begin
+						check_left_point	<= 1'b1;
+					end
+				end
+				NEW_SHAPE:begin
+					check_left_point <= 1'b1;
+				end
+				default:begin
+					check_left_point <= 1'b1;
+				end
+			endcase
+		end
+	end
+	
+	reg check_right_point;//檢測向右
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			check_right_point <= 1'b1;
+		end
+		else begin
+			case(state)
+				DECLINE:begin
+					if(graph[(shape[2:0]*4) + rotation_choose][15]==1'b1 && board[pos_y+7][pos_x+4])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][14]==1'b1 && board[pos_y+7][pos_x+3])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][13]==1'b1 && board[pos_y+7][pos_x+2])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x+1])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][11]==1'b1 && board[pos_y+6][pos_x+4])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][10]==1'b1 && board[pos_y+6][pos_x+3])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][9]==1'b1 && board[pos_y+6][pos_x+2])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x+1])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][7]==1'b1 && board[pos_y+5][pos_x+4])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][6]==1'b1 && board[pos_y+5][pos_x+3])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][5]==1'b1 && board[pos_y+5][pos_x+2])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x+1])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][3]==1'b1 && board[pos_y+4][pos_x+4])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][2]==1'b1 && board[pos_y+4][pos_x+3])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][1]==1'b1 && board[pos_y+4][pos_x+2])begin
+					  check_right_point <= 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x+1])begin
+					  check_right_point <= 1'b0;
+					end
+					else begin
+						check_right_point <= 1'b1;
+					end
+				end
+				NEW_SHAPE:begin
+					check_right_point <= 1'b1;
+				end
+				default:begin
+					check_right_point <= 1'b1;
+				end
+			endcase
+		end
+	end
+	
+	reg check_right_rotation;//檢測向右旋轉
+	always @(*)begin
+		if(!rst)begin
+			check_right_rotation = 1'b1;
+		end
+		else begin
+			case(state)
+				DECLINE:begin
+					if(graph[(shape[2:0]*4) + rotation_choose-1][15]==1'b1 &&  (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][14]==1'b1 &&  (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][13]==1'b1 &&  (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][12]==1'b1 &&  (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][11]==1'b1 &&  (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][10]==1'b1 &&  (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][9]==1'b1 &&  (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][8]==1'b1 &&  (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][7]==1'b1 &&  (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][6]==1'b1 &&  (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][5]==1'b1 &&  (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][4]==1'b1 &&  (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][3]==1'b1 &&  (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][2]==1'b1 &&  (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][1]==1'b1 &&  (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose-1][0]==1'b1 &&  (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_right_rotation = 1'b0;
+					end
+					else begin
+						check_right_rotation = 1'b1;
+					end
+				end
+				NEW_SHAPE:begin
+					check_right_rotation = 1'b1;
+				end
+				default:begin
+					check_right_rotation = 1'b1;
+				end
+			endcase
+		end
+	end
+	
+	reg check_left_rotation;//檢測向左旋轉
+	always @(*)begin
+		if(!rst)begin
+			check_left_rotation = 1'b1;
+		end
+		else begin
+			case(state)
+				DECLINE:begin
+					if(graph[(shape[2:0]*4) + rotation_choose+1][15]==1'b1 && (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][14]==1'b1 && (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][13]==1'b1 && (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][12]==1'b1 && (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][11]==1'b1 && (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][10]==1'b1 && (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][9]==1'b1 && (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][8]==1'b1 && (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][7]==1'b1 && (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][6]==1'b1 && (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][5]==1'b1 && (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][4]==1'b1 && (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][3]==1'b1 && (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][2]==1'b1 && (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][1]==1'b1 && (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else if(graph[(shape[2:0]*4) + rotation_choose+1][0]==1'b1 && (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
+					  check_left_rotation = 1'b0;
+					end
+					else begin
+						check_left_rotation = 1'b1;
+					end
+				end
+				NEW_SHAPE:begin
+					check_left_rotation = 1'b1;
+				end
+				default:begin
+					check_left_rotation = 1'b1;
+				end
+			endcase
+		end
+	end
 	//==============<控制左右和旋轉>===========
 	always@(posedge IR_CLK_1S, negedge rst)begin
 		if(!rst)begin
@@ -805,28 +1048,39 @@ module tetris(	clk,
 			case(state)
 				NEW_SHAPE:begin
 					pos_x <= initial_shape_pos_x;
-					
 				end
 				DECLINE:begin
 					if(key2_on)begin
 						case(key2_code)
-							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
-							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
-							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
+							8'h12:begin
+								if(check_left_rotation)begin
+									rotation_choose <= rotation_choose + 1'b1;//旋轉
+								end
+							end
+							8'h1A:begin
+								if(check_left_rotation)begin
+									rotation_choose <= rotation_choose + 1'b1;//左旋轉
+								end
+							end
+							8'h22:begin
+								if(check_right_rotation)begin
+									rotation_choose <= rotation_choose - 1'b1;//右旋轉
+								end
+							end
 						endcase
 					end
 					else if(key1_on)begin
 						case(key1_code)
 							8'h6B:begin
-								if(pos_x > 5'd0)begin					//左邊界限制
+								if(pos_x > 5'd0 && check_left_point)begin					//左邊界限制
 									pos_x <= pos_x - 1'b1; //向左
 								end
 							end
 							8'h74:begin									//右邊界限制
-								if(shape[2:0] == 3'd0 && pos_x <6'd8)begin		//O
+								if(shape[2:0] == 3'd0 && pos_x <6'd8 && check_right_point)begin		//O
 									pos_x <= pos_x + 1'b1;//向右
 								end
-								else if(shape[2:0] == 3'd1)begin					//I
+								else if(shape[2:0] == 3'd1 && check_right_point)begin					//I
 									if(rotation_choose[0]==0)begin
 										if(pos_x < 6'd6)begin
 											pos_x <= pos_x + 1'b1;//向右
@@ -838,7 +1092,7 @@ module tetris(	clk,
 										end
 									end
 								end
-								else begin											//otherwise
+								else if(shape[2:0] > 3'd1 && check_right_point) begin					//otherwise
 									if(rotation_choose[0]==0)begin
 										if(pos_x < 6'd7)begin
 											pos_x <= pos_x + 1'b1;//向右
@@ -851,9 +1105,21 @@ module tetris(	clk,
 									end
 								end
 							end
-							8'h12: rotation_choose <= rotation_choose + 1'b1;//選轉
-							8'h1A: rotation_choose <= rotation_choose + 1'b1;//左選轉
-							8'h22: rotation_choose <= rotation_choose - 1'b1;//右選轉
+							8'h12:begin
+								if(check_left_rotation)begin
+									rotation_choose <= rotation_choose + 1'b1;//旋轉
+								end
+							end
+							8'h1A:begin
+								if(check_left_rotation)begin
+									rotation_choose <= rotation_choose + 1'b1;//左旋轉
+								end
+							end
+							8'h22:begin
+								if(check_right_rotation)begin
+									rotation_choose <= rotation_choose - 1'b1;//右旋轉
+								end
+							end
 						endcase
 					end
 				end
