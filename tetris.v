@@ -29,11 +29,14 @@ module tetris(	clk,
 	wire [7:0] scandata;				//掃描的資料
 	wire key1_on;						//按鍵1
 	wire key2_on;						//按鍵2
+	wire key3_on;  					//按鍵3
 	wire [7:0] key1_code;			//按鍵1資料
 	wire [7:0] key2_code;			//按鍵2資料
+	wire [7:0] key3_code;			//按鍵3資料
 	output [17:0] LEDR;				//檢測鍵盤
 	assign LEDR[1] = key1_on;		//存載上下左右
 	assign LEDR[2] = key2_on;     //存載選轉
+	assign LEDR[3] = key3_on;     //檢測快速降落
 	//wire get_keyboard1_on;			//檢測keyboad是否有被按下至少一個鍵
 	//assign 
 	//wire reset_1; 
@@ -47,8 +50,10 @@ module tetris(	clk,
 									.scandata(scandata),
 									.key1_on(key1_on),
 									.key2_on(key2_on),
+									.key3_on(key3_on),
 									.key1_code(key1_code),
-									.key2_code(key2_code)
+									.key2_code(key2_code),
+									.key3_code(key3_code)
 									);
 	
 	//==========<IR>=================
@@ -165,29 +170,58 @@ module tetris(	clk,
 		end
 	end
 	
+	
+	reg [25:0] down_speed;// 下降速度
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			down_speed <= 26'd5000_0000;
+		end
+		else begin
+			if(key3_code == 8'h72 )begin
+				down_speed <= 26'd700_0000;
+			end
+			else begin
+				case(IR_speed)
+					2'd0:begin
+						down_speed <= 26'd5000_0000;
+					end
+					2'd1:begin
+						down_speed <= 26'd2500_0000;
+					end
+					2'd2:begin
+						down_speed <= 26'd1600_0000;
+					end
+					2'd3:begin
+						down_speed <= 26'd1250_0000;
+					end
+				endcase
+			end
+		end
+	end
+	
 	wire first_clk_1;
 	wire first_clk_10;
 	//======================<第一組速度>=====================
-	counterDivider #(23,  500_0000)  cnt_first_1(clk25M, rst, first_clk_1);  	//除頻500萬，操作速度相當於0.1as
-	counterDivider #(26, 5000_0000) cnt_first_10(clk  , rst, first_clk_10);		//除頻5000萬
+	counterDivider_TETRIS #(23)  cnt_first_1(clk25M, rst, first_clk_1, 26'd500_0000);  	//除頻500萬，操作速度相當於0.1as
+	counterDivider_TETRIS #(26) cnt_first_10(clk  , rst, first_clk_10, down_speed);		//除頻5000萬
 	
 	wire second_clk_1;
 	wire second_clk_10;
 	//======================<第二組速度>=====================
-	counterDivider #(23,  400_0000)  cnt_second_1(clk25M, rst, second_clk_1);  	//除頻500萬，操作速度相當於0.2s
-	counterDivider #(25, 2500_0000) cnt_sceond_10(clk  , rst, second_clk_10);	//除頻2500萬
+	counterDivider_TETRIS #(23)  cnt_second_1(clk25M, rst, second_clk_1, 26'd400_0000);  	//除頻500萬，操作速度相當於0.2s
+	counterDivider_TETRIS #(25) cnt_sceond_10(clk  , rst, second_clk_10, down_speed);	//除頻2500萬
 	
 	wire third_clk_1;
 	wire third_clk_10;
 	//======================<第三組速度>=====================
-	counterDivider #(23,  360_0000)  cnt_third_1(clk25M, rst, third_clk_1);  	//除頻500萬，操作速度相當於0.2s
-	counterDivider #(24, 1600_0000) cnt_third_10(clk  , rst, third_clk_10);	   //除頻1600萬
+	counterDivider_TETRIS #(23)  cnt_third_1(clk25M, rst, third_clk_1, 26'd360_0000);  	//除頻500萬，操作速度相當於0.2s
+	counterDivider_TETRIS #(24) cnt_third_10(clk  , rst, third_clk_10, down_speed);	   //除頻1600萬
 	
 	wire forth_clk_1;
 	wire forth_clk_10;
 	//======================<第四組速度>=====================
-	counterDivider #(23,  360_0000)  cnt_forth_1(clk25M, rst, forth_clk_1);  	 //除頻500萬，操作速度相當於0.2s
-	counterDivider #(24, 1250_0000)  cnt_forth_10(clk  , rst, forth_clk_10);	 //除頻1250萬
+	counterDivider_TETRIS #(23)  cnt_forth_1(clk25M, rst, forth_clk_1,  26'd360_0000);  	 //除頻500萬，操作速度相當於0.2s
+	counterDivider_TETRIS #(24)  cnt_forth_10(clk  , rst, forth_clk_10, down_speed);	 //除頻1250萬
 	
 	parameter V_FRONT = 11;
 	parameter V_SYNC  = 2;
@@ -1227,18 +1261,18 @@ module tetris(	clk,
 endmodule
 
 //===============<除頻器>=====================
-module counterDivider(CLK, RST, CLK_Out); 
-
+module counterDivider_TETRIS(CLK, RST, CLK_Out, countDivider); 
+	
     // 除頻設定 1kHz 1ms
 	parameter size = 16;
-	parameter countDivider = 16'd1_000;
-	localparam countDivider_D2  = countDivider / 2;
-
+	input [25:0] countDivider;
+	wire [25:0] countDivider_D2;
+	assign countDivider_D2 = countDivider / 2;
+	
 	input CLK, RST;
 	output reg CLK_Out;
 
 	reg [size-1:0] Cnt = 0;
-
 	always @(posedge CLK or negedge RST) begin
 		if(!RST) begin
 			Cnt <= 0;

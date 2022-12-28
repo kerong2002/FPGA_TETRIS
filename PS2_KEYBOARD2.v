@@ -7,12 +7,14 @@ module PS2_KEYBOARD2(
         output reg [7:0] scandata,
         output reg       key1_on,
         output reg       key2_on,
+		output reg       key3_on,
         output reg [7:0] key1_code,
-        output reg [7:0] key2_code
+        output reg [7:0] key2_code,
+		output reg [7:0] key3_code
     );
 	
 	parameter KEY_UP    	 = 8'h75;
-	parameter KEY_DWON  	 = 8'h72;
+	parameter KEY_DOWN  	 = 8'h72;
 	parameter KEY_LEFT  	 = 8'h6B;
 	parameter KEY_RIGHT 	 = 8'h74;
 	parameter KEY_ROTATE	 = 8'h12;
@@ -85,7 +87,7 @@ module PS2_KEYBOARD2(
     /////////////////////////////////////Key1-Key2 Output///////////////////////////
     wire is_key=(
             (keycode_o == KEY_UP)?1:(
-            (keycode_o == KEY_DWON)?1:(
+            (keycode_o == KEY_DOWN)?1:(
             (keycode_o == KEY_LEFT)?1:(
             (keycode_o == KEY_RIGHT)?1:(
             (keycode_o == KEY_ROTATE)?1:(
@@ -104,8 +106,10 @@ module PS2_KEYBOARD2(
         if (!keyboard_off)begin
             key1_on=0;
             key2_on=0;
+			key3_on=0;
             key1_code=8'hf0;
             key2_code=8'hf0;
+			key3_code=8'hf0;
         end
         else if (scandata==8'hf0)begin
 			if (keycode_o==key1_code)begin
@@ -116,60 +120,42 @@ module PS2_KEYBOARD2(
 				key2_code=8'hf0;
 				key2_on=0;
 			end
+			else if (keycode_o==key3_code)begin
+				key3_code=8'hf0;
+				key3_on=0;
+			end
 		end
 		else if (is_key)begin
-			if ((!key1_on) && (key2_code!=keycode_o))begin
-				case(keycode_o)
-					KEY_UP:begin
-						key1_on=1;
-						key1_code=keycode_o;
-					end
-					KEY_DWON:begin
-						key1_on=1;
-						key1_code=keycode_o;
-					end
-					KEY_LEFT:begin
-						key1_on=1;
-						key1_code=keycode_o;
-					end
-					KEY_RIGHT:begin
-						key1_on=1;
-						key1_code=keycode_o;
-					end
-					KEY_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-					KEY_L_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-					KEY_R_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-					KEY_ENTER:begin
-						key1_on=1;
-						key1_code=keycode_o;
-					end
-				endcase
-			end
-			else if ((!key2_on) && (key1_code!=keycode_o))begin
-				case(keycode_o)
-					KEY_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-					KEY_L_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-					KEY_R_ROTATE:begin
-						key2_on=1;
-						key2_code=keycode_o;
-					end
-				endcase
-			end
+			case(keycode_o)
+				KEY_LEFT:begin
+					key1_on=1;
+					key1_code=keycode_o;
+				end
+				KEY_RIGHT:begin
+					key1_on=1;
+					key1_code=keycode_o;
+				end
+				KEY_ROTATE:begin
+					key2_on=1;
+					key2_code=keycode_o;
+				end
+				KEY_L_ROTATE:begin
+					key2_on=1;
+					key2_code=keycode_o;
+				end
+				KEY_R_ROTATE:begin
+					key2_on=1;
+					key2_code=keycode_o;
+				end
+				KEY_ENTER:begin
+					key1_on=1;
+					key1_code=keycode_o;
+				end
+				KEY_DOWN:begin
+					key3_on=1;
+					key3_code=keycode_o;
+				end
+			endcase
 		end
     end
 
