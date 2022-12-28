@@ -570,7 +570,43 @@ module tetris(	clk,
 		end
 	end
 
-	reg [23:0]color[5:0];	//顏色區塊
+	reg [23:0]color[12:0];	//顏色區塊
+	reg [3:0] current_color;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			current_color <= 4'd0;
+		end
+		else begin
+			case(shape[2:0])
+				3'd0:current_color <= 4'd6;
+				3'd1:current_color <= 4'd7;
+				3'd2:current_color <= 4'd8;
+				3'd3:current_color <= 4'd9;
+				3'd4:current_color <= 4'd10;
+				3'd5:current_color <= 4'd11;
+				3'd6:current_color <= 4'd12;
+				3'd7:current_color <= 4'd12;
+			endcase
+		end
+	end
+	reg [3:0] next_color;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			next_color <= 4'd0;
+		end
+		else begin
+			case(n_shape[2:0])
+				3'd0:next_color <= 4'd6;
+				3'd1:next_color <= 4'd7;
+				3'd2:next_color <= 4'd8;
+				3'd3:next_color <= 4'd9;
+				3'd4:next_color <= 4'd10;
+				3'd5:next_color <= 4'd11;
+				3'd6:next_color <= 4'd12;
+				3'd7:next_color <= 4'd12;
+			endcase
+		end
+	end
 	//========<設定遊戲布局大小和邊框>===========
 	parameter Board_min_X     = 13'd245;
 	parameter Board_max_X     = 13'd395;
@@ -592,52 +628,52 @@ module tetris(	clk,
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
 				if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(shape[2:0]*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
 					{VGA_R,VGA_G,VGA_B}<=color[3];
@@ -649,52 +685,52 @@ module tetris(	clk,
 			//next_shape
 			else if(X>=Board_N_shape_min_X && X<Board_N_shape_max_X && Y>=Board_N_shape_min_Y && Y<Board_N_shape_max_Y)begin
 				if(graph[(n_shape[2:0]*4)][0]==1'b1 && X>=450 && X<465 && Y>=70 && Y<90)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][1]==1'b1 && X>=465 && X<480 && Y>=70 && Y<90)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][2]==1'b1 && X>=480 && X<495 && Y>=70 && Y<90)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][3]==1'b1 && X>=495 && X<510 && Y>=70 && Y<90)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][4]==1'b1 && X>=450 && X<465 && Y>=90 && Y<110)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][5]==1'b1 && X>=465 && X<480 && Y>=90 && Y<110)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][6]==1'b1 && X>=480 && X<495 && Y>=90 && Y<110)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][7]==1'b1 && X>=495 && X<510 && Y>=90 && Y<110)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][8]==1'b1 && X>=450 && X<465 && Y>=110 && Y<130)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][9]==1'b1 && X>=465 && X<480 && Y>=110 && Y<130)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][10]==1'b1 && X>=480 && X<495 && Y>=110 && Y<130)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][11]==1'b1 && X>=495 && X<510 && Y>=110 && Y<130)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][12]==1'b1 && X>=450 && X<465 && Y>=130 && Y<150)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][13]==1'b1 && X>=465 && X<480 && Y>=130 && Y<150)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][14]==1'b1 && X>=480 && X<495 && Y>=130 && Y<150)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else if(graph[(n_shape[2:0]*4)][15]==1'b1 && X>=495 && X<510 && Y>=130 && Y<150)begin
-					 {VGA_R,VGA_G,VGA_B}<=color[2];
+					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
@@ -1164,6 +1200,13 @@ module tetris(	clk,
 			color[3]<=24'h0185fc;//sky blue
 			color[4]<=24'hffffff;//white
 			color[5]<=24'h606166;//gray
+			color[6]<=24'hf0e611;//color O
+			color[7]<=24'h1cc5fd;//color I
+			color[8]<=24'h18c529;//color S
+			color[9]<=24'he1031e;//color Z
+			color[10]<=24'hff6b24;//color L
+			color[11]<=24'h1e07e4;//color J
+			color[12]<=24'h7b01d6;//color T
 		end else begin
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
@@ -1171,6 +1214,13 @@ module tetris(	clk,
 			color[3]<=24'h0185fc;//sky blue
 			color[4]<=24'hffffff;//white
 			color[5]<=24'h606166;//gray
+			color[6]<=24'hf0e611;//color O
+			color[7]<=24'h1cc5fd;//color I
+			color[8]<=24'h18c529;//color S
+			color[9]<=24'he1031e;//color Z
+			color[10]<=24'hff6b24;//color L
+			color[11]<=24'h1e07e4;//color J
+			color[12]<=24'h7b01d6;//color T
 		end
 	end
 
