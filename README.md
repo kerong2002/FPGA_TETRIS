@@ -6,14 +6,15 @@ FPGA_TETRIS
 ### 方塊圖
 <img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris_shape_cut.PNG" alt="krameri120's TETRIS" width="46%" />
 
-## 操作說明！
+## 操作說明
+
 |KEY_BOARD|操作|KEY_BOARD|
 |:-:|:-:|:-:|:-:|
 |left|向左移動|right|向右移動|
 |down|快速降落|space|直接降落|
 |z|左旋轉|x|右旋轉|
 |up|左旋轉|ENTER|開始遊戲|
-|shift|hold|c|hold|
+|shift|hold|c|hold| 
 
 
 1. IR -> 速度調整
