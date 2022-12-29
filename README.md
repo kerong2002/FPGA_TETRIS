@@ -10,8 +10,10 @@ FPGA_TETRIS
 |KEY_BOARD|操作|KEY_BOARD|操作|
 |:-:|:-:|:-:|:-:|
 |left|向左移動|right|向右移動|
-|z|左轉|x|右轉|
-|shift|左轉|ENTER|開始遊戲|
+|z|左旋轉|x|右旋轉|
+|shift|hold|c|hold|
+|ENTER|開始遊戲|up|左旋轉|
+|down|快速降落|||
 
 1. IR -> 速度調整
 2. VGA -> 顯示畫面
