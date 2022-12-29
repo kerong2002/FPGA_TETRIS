@@ -22,7 +22,7 @@ module PS2_KEYBOARD2(
 	parameter KEY_R_ROTATE   = 8'h22;
 	parameter KEY_ENTER  	 = 8'h5A;
 	parameter KEY_HOLD       = 8'h21;
-
+	parameter KEY_SPACE      = 8'h29;
     ////////////Keyboard Initially/////////
     reg [10:0] MCNT;
     always @(negedge rst or posedge clk)begin
@@ -94,8 +94,9 @@ module PS2_KEYBOARD2(
 			(keycode_o == KEY_L_ROTATE)?1:(
 			(keycode_o == KEY_R_ROTATE)?1:(
 			(keycode_o == KEY_HOLD)?1:(
+			(keycode_o == KEY_SPACE)?1:(
             (keycode_o == KEY_ENTER)?1:0
-            ))))))))
+            )))))))))
          );
 
     //////////////key1 & key2 Assign///////////
@@ -162,6 +163,10 @@ module PS2_KEYBOARD2(
 					key3_code=keycode_o;
 				end
 				KEY_HOLD:begin
+					key3_on=1;
+					key3_code=keycode_o;
+				end
+				KEY_SPACE:begin
 					key3_on=1;
 					key3_code=keycode_o;
 				end

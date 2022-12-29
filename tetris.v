@@ -1,6 +1,7 @@
 `include "./IR.v"
 `include "./LCD.v"
 `include "./PS2_KEYBOARD2.v"
+//a`include "./IMG.v"
 module tetris(	clk,
 					rst,
 					IRDA_RXD,
@@ -37,6 +38,9 @@ module tetris(	clk,
 	assign LEDR[1] = key1_on;		//存載上下左右
 	assign LEDR[2] = key2_on;     //存載選轉
 	assign LEDR[3] = key3_on;     //檢測快速降落
+	
+	assign LEDR[4] = change_cnt;  //檢測是否hold過了
+	assign LEDR[5] = hold_check;	//hold第一次檢測，已經有一次以上亮燈
 	//wire get_keyboard1_on;			//檢測keyboad是否有被按下至少一個鍵
 	//assign 
 	//wire reset_1; 
@@ -170,14 +174,16 @@ module tetris(	clk,
 		end
 	end
 	
-	
 	reg [25:0] down_speed;// 下降速度
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
 			down_speed <= 26'd5000_0000;
 		end
 		else begin
-			if(key3_code == 8'h72 )begin
+			if( state == DECLINE && key3_code == 8'h29 )begin
+				down_speed <= 26'd50;
+			end
+			else if(key3_code == 8'h72 )begin
 				down_speed <= 26'd700_0000;
 			end
 			else begin
@@ -463,6 +469,45 @@ module tetris(	clk,
 		end
 	end
 	
+	reg change_cnt;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			change_cnt <= 1'd0;
+		end
+		else begin
+			case(state)
+				START:begin
+					change_cnt <= 1'd0;
+				end
+				NEW_SHAPE:begin
+					change_cnt <= 1'd0;
+				end
+				PLACE:begin
+					change_cnt <= 1'd0;
+				end
+				HOLD:begin
+					change_cnt <= 1'd1;
+				end
+			endcase
+		end
+	end
+	
+	reg hold_check;
+	always @(posedge IR_CLK_10S, negedge rst)begin
+		if(!rst)begin
+			hold_check <= 1'd0;
+		end
+		else begin
+			case(state)
+				START:begin
+					hold_check <= 1'd0;
+				end
+				HOLD:begin
+					hold_check <= 1'd1;
+				end
+			endcase
+		end
+	end
 	
 	//============<狀態轉移>===================
 	always @(*)begin
@@ -479,55 +524,57 @@ module tetris(	clk,
 				nextstate = DECLINE;
 			end
 			DECLINE:begin
-				if(graph[(shape[2:0]*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
+				if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+2]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+1]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 &&( ((pos_y + 3) >= 18) || (board[pos_y+4+5][pos_x+0]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+2]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+2]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+1]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+1]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+0]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 &&( ((pos_y + 2) >= 18) || (board[pos_y+3+5][pos_x+0]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+3]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+2]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+2]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+1]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+1]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+0]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 &&( ((pos_y + 1) >= 18) || (board[pos_y+2+5][pos_x+0]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+3]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+3]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+2]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+2]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+1]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+1]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+0]==1'b1)))begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 &&( ((pos_y + 0) >= 18) || (board[pos_y+1+5][pos_x+0]==1'b1)))begin
 				  nextstate = PLACE;
 				end
-
+				else if((key3_code == 8'h21 ||  key3_code == 8'h12)&& change_cnt == 1'd0)begin
+					nextstate = HOLD;
+				end
 				/*else if(key1_code == 8'h12 || key2_code == 8'h12)begin
 					nextstate = SHIFT_ON;
 				end*/
@@ -552,6 +599,14 @@ module tetris(	clk,
 				end
 				else begin
 					nextstate = REMOVE;
+				end
+			end
+			HOLD:begin
+				if(hold_check == 1'b0)begin
+					nextstate = NEW_SHAPE;
+				end
+				else begin
+					nextstate = DECLINE;
 				end
 			end
 			DIED:begin
@@ -615,7 +670,7 @@ module tetris(	clk,
 			current_color <= 4'd0;
 		end
 		else begin
-			case(shape[2:0])
+			case(cur_shape[2:0])
 				3'd0:current_color <= 4'd6;
 				3'd1:current_color <= 4'd7;
 				3'd2:current_color <= 4'd8;
@@ -627,6 +682,7 @@ module tetris(	clk,
 			endcase
 		end
 	end
+	
 	reg [3:0] next_color;
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
@@ -645,6 +701,25 @@ module tetris(	clk,
 			endcase
 		end
 	end
+	
+	reg [3:0] hold_color;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			hold_color <= 4'd0;
+		end
+		else begin
+			case(hold_shape[2:0])
+				3'd0:hold_color <= 4'd6;
+				3'd1:hold_color <= 4'd7;
+				3'd2:hold_color <= 4'd8;
+				3'd3:hold_color <= 4'd9;
+				3'd4:hold_color <= 4'd10;
+				3'd5:hold_color <= 4'd11;
+				3'd6:hold_color <= 4'd12;
+				3'd7:hold_color <= 4'd12;
+			endcase
+		end
+	end
 	//========<設定遊戲布局大小和邊框>===========
 	parameter Board_min_X     = 13'd245;
 	parameter Board_max_X     = 13'd395;
@@ -655,6 +730,12 @@ module tetris(	clk,
 	parameter Board_N_shape_max_X	= 13'd510;
 	parameter Board_N_shape_min_Y = 13'd70;
 	parameter Board_N_shape_max_Y = 13'd150;
+	parameter Board_H_shape_min_X = 13'd145;
+	parameter Board_H_shape_max_X	= 13'd205;
+	//parameter LOGO_min_X = 13'd50;
+	//parameter LOGO_max_X = 13'd150;
+	//parameter LOGO_min_Y = 13'd240;
+	//parameter LOGO_max_Y = 13'd309;
 	integer i,j;
 	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
 	//===========<螢幕上色>=================
@@ -665,52 +746,52 @@ module tetris(	clk,
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-				if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
+				if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(shape[2:0]*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
@@ -774,16 +855,82 @@ module tetris(	clk,
 					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
 				end
 			end
+			//hold_shape
+			else if(X>=Board_H_shape_min_X && X<Board_H_shape_max_X && Y>=Board_N_shape_min_Y && Y<Board_N_shape_max_Y)begin
+				if(hold_check)begin
+					if(graph[(hold_shape[2:0]*4)][0]==1'b1 && X>=145 && X<160 && Y>=70 && Y<90)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][1]==1'b1 && X>=160 && X<175 && Y>=70 && Y<90)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][2]==1'b1 && X>=175 && X<190 && Y>=70 && Y<90)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][3]==1'b1 && X>=190 && X<205 && Y>=70 && Y<90)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][4]==1'b1 && X>=145 && X<160 && Y>=90 && Y<110)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][5]==1'b1 && X>=160 && X<175 && Y>=90 && Y<110)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][6]==1'b1 && X>=175 && X<190 && Y>=90 && Y<110)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][7]==1'b1 && X>=190 && X<205 && Y>=90 && Y<110)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][8]==1'b1 && X>=145 && X<160 && Y>=110 && Y<130)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][9]==1'b1 && X>=160 && X<175 && Y>=110 && Y<130)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][10]==1'b1 && X>=175 && X<190 && Y>=110 && Y<130)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][11]==1'b1 && X>=190 && X<205 && Y>=110 && Y<130)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][12]==1'b1 && X>=145 && X<160 && Y>=130 && Y<150)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][13]==1'b1 && X>=160 && X<175 && Y>=130 && Y<150)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][14]==1'b1 && X>=175 && X<190 && Y>=130 && Y<150)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else if(graph[(hold_shape[2:0]*4)][15]==1'b1 && X>=190 && X<205 && Y>=130 && Y<150)begin
+						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
+					end
+					else begin
+						{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+					end
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+				end
+			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
 				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
 			end
+			//else if(X>=LOGO_min_X && X<LOGO_max_X && Y>= LOGO_min_Y && Y<LOGO_max_Y)begin
+			//	{VGA_R,VGA_G,VGA_B}<=take_img;
+			//end
 			else begin
 				{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+				//{VGA_R,VGA_G,VGA_B}<=take_img;//其餘部分
 			end
 			//{VGA_R,VGA_G,VGA_B}<=color[2];
 
 		end
 	end
+	
+	//wire [23:0] take_img;
+	//IMG img1(X-LOGO_min_X,Y-LOGO_min_Y,take_img);
 	
 	always @(posedge time_clk, negedge rst)begin
 		if(!rst)begin
@@ -858,7 +1005,7 @@ module tetris(	clk,
 				PLACE:begin
 					for(y=3;y>=0;y=y-1)begin
 						for(x=3;x>=0;x=x-1)begin
-							if(graph[(shape[2:0]*4) + rotation_choose][(y<<2)+x]==1'b1)begin
+							if(graph[(cur_shape[2:0]*4) + rotation_choose][(y<<2)+x]==1'b1)begin
 							  board[pos_y + y + 4][pos_x + x] <= 1'b1;//位置要往下放4個
 							end
 						end
@@ -877,16 +1024,16 @@ module tetris(	clk,
 		else begin
 			case(state)
 				DECLINE:begin
-					if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x-1])begin
+					if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x-1])begin
 						check_left_point	<= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x-1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x-1])begin
 						check_left_point	<= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x-1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x-1])begin
 						check_left_point	<= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x-1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x-1])begin
 						check_left_point	<= 1'b0;
 					end
 					else begin
@@ -911,52 +1058,52 @@ module tetris(	clk,
 		else begin
 			case(state)
 				DECLINE:begin
-					if(graph[(shape[2:0]*4) + rotation_choose][15]==1'b1 && board[pos_y+7][pos_x+4])begin
+					if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 && board[pos_y+7][pos_x+4])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][14]==1'b1 && board[pos_y+7][pos_x+3])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 && board[pos_y+7][pos_x+3])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][13]==1'b1 && board[pos_y+7][pos_x+2])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 && board[pos_y+7][pos_x+2])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x+1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && board[pos_y+7][pos_x+1])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][11]==1'b1 && board[pos_y+6][pos_x+4])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 && board[pos_y+6][pos_x+4])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][10]==1'b1 && board[pos_y+6][pos_x+3])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 && board[pos_y+6][pos_x+3])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][9]==1'b1 && board[pos_y+6][pos_x+2])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 && board[pos_y+6][pos_x+2])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x+1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && board[pos_y+6][pos_x+1])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][7]==1'b1 && board[pos_y+5][pos_x+4])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 && board[pos_y+5][pos_x+4])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][6]==1'b1 && board[pos_y+5][pos_x+3])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 && board[pos_y+5][pos_x+3])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][5]==1'b1 && board[pos_y+5][pos_x+2])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 && board[pos_y+5][pos_x+2])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x+1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && board[pos_y+5][pos_x+1])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][3]==1'b1 && board[pos_y+4][pos_x+4])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 && board[pos_y+4][pos_x+4])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][2]==1'b1 && board[pos_y+4][pos_x+3])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 && board[pos_y+4][pos_x+3])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][1]==1'b1 && board[pos_y+4][pos_x+2])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && board[pos_y+4][pos_x+2])begin
 					  check_right_point <= 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x+1])begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && board[pos_y+4][pos_x+1])begin
 					  check_right_point <= 1'b0;
 					end
 					else begin
@@ -981,52 +1128,52 @@ module tetris(	clk,
 		else begin
 			case(state)
 				DECLINE:begin
-					if(graph[(shape[2:0]*4) + rotation_choose-1][15]==1'b1 &&  (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
+					if(graph[(cur_shape[2:0]*4) + rotation_choose-1][15]==1'b1 &&  (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][14]==1'b1 &&  (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][14]==1'b1 &&  (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][13]==1'b1 &&  (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][13]==1'b1 &&  (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][12]==1'b1 &&  (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][12]==1'b1 &&  (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][11]==1'b1 &&  (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][11]==1'b1 &&  (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][10]==1'b1 &&  (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][10]==1'b1 &&  (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][9]==1'b1 &&  (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][9]==1'b1 &&  (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][8]==1'b1 &&  (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][8]==1'b1 &&  (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][7]==1'b1 &&  (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][7]==1'b1 &&  (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][6]==1'b1 &&  (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][6]==1'b1 &&  (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][5]==1'b1 &&  (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][5]==1'b1 &&  (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][4]==1'b1 &&  (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][4]==1'b1 &&  (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][3]==1'b1 &&  (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][3]==1'b1 &&  (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][2]==1'b1 &&  (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][2]==1'b1 &&  (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][1]==1'b1 &&  (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][1]==1'b1 &&  (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose-1][0]==1'b1 &&  (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose-1][0]==1'b1 &&  (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_right_rotation = 1'b0;
 					end
 					else begin
@@ -1051,52 +1198,52 @@ module tetris(	clk,
 		else begin
 			case(state)
 				DECLINE:begin
-					if(graph[(shape[2:0]*4) + rotation_choose+1][15]==1'b1 && (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
+					if(graph[(cur_shape[2:0]*4) + rotation_choose+1][15]==1'b1 && (board[pos_y+7][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][14]==1'b1 && (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][14]==1'b1 && (board[pos_y+7][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][13]==1'b1 && (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][13]==1'b1 && (board[pos_y+7][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][12]==1'b1 && (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][12]==1'b1 && (board[pos_y+7][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][11]==1'b1 && (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][11]==1'b1 && (board[pos_y+6][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][10]==1'b1 && (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][10]==1'b1 && (board[pos_y+6][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][9]==1'b1 && (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][9]==1'b1 && (board[pos_y+6][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][8]==1'b1 && (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][8]==1'b1 && (board[pos_y+6][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][7]==1'b1 && (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][7]==1'b1 && (board[pos_y+5][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][6]==1'b1 && (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][6]==1'b1 && (board[pos_y+5][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][5]==1'b1 && (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][5]==1'b1 && (board[pos_y+5][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][4]==1'b1 && (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][4]==1'b1 && (board[pos_y+5][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][3]==1'b1 && (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][3]==1'b1 && (board[pos_y+4][pos_x+3] || (pos_x + 3)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][2]==1'b1 && (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][2]==1'b1 && (board[pos_y+4][pos_x+2] || (pos_x + 2)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][1]==1'b1 && (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][1]==1'b1 && (board[pos_y+4][pos_x+1] || (pos_x + 1)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
-					else if(graph[(shape[2:0]*4) + rotation_choose+1][0]==1'b1 && (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
+					else if(graph[(cur_shape[2:0]*4) + rotation_choose+1][0]==1'b1 && (board[pos_y+4][pos_x+0] || (pos_x + 0)>6'd9))begin
 					  check_left_rotation = 1'b0;
 					end
 					else begin
@@ -1112,6 +1259,9 @@ module tetris(	clk,
 			endcase
 		end
 	end
+	
+
+	
 	//==============<控制左右和旋轉>===========
 	always@(posedge IR_CLK_1S, negedge rst)begin
 		if(!rst)begin
@@ -1126,7 +1276,7 @@ module tetris(	clk,
 				DECLINE:begin
 					if(key2_on)begin
 						case(key2_code)
-							8'h12:begin
+							8'h75:begin
 								if(check_left_rotation)begin
 									rotation_choose <= rotation_choose + 1'b1;//旋轉
 								end
@@ -1151,10 +1301,10 @@ module tetris(	clk,
 								end
 							end
 							8'h74:begin									//右邊界限制
-								if(shape[2:0] == 3'd0 && pos_x <6'd8 && check_right_point)begin		//O
+								if(cur_shape[2:0] == 3'd0 && pos_x <6'd8 && check_right_point)begin		//O
 									pos_x <= pos_x + 1'b1;//向右
 								end
-								else if(shape[2:0] == 3'd1 && check_right_point)begin					//I
+								else if(cur_shape[2:0] == 3'd1 && check_right_point)begin					//I
 									if(rotation_choose[0]==0)begin
 										if(pos_x < 6'd6)begin
 											pos_x <= pos_x + 1'b1;//向右
@@ -1166,7 +1316,7 @@ module tetris(	clk,
 										end
 									end
 								end
-								else if(shape[2:0] > 3'd1 && check_right_point) begin					//otherwise
+								else if(cur_shape[2:0] > 3'd1 && check_right_point) begin					//otherwise
 									if(rotation_choose[0]==0)begin
 										if(pos_x < 6'd7)begin
 											pos_x <= pos_x + 1'b1;//向右
@@ -1179,7 +1329,7 @@ module tetris(	clk,
 									end
 								end
 							end
-							8'h12:begin
+							8'h75:begin
 								if(check_left_rotation)begin
 									rotation_choose <= rotation_choose + 1'b1;//旋轉
 								end
@@ -1201,6 +1351,35 @@ module tetris(	clk,
 			endcase
 		end
 	end 
+	
+	reg [4:0] cur_shape ;
+	reg [4:0] hold_shape;
+	always @(posedge IR_CLK_10S, negedge rst)begin
+		if(!rst)begin
+			cur_shape <= n_shape; 
+			hold_shape <= 5'd0;
+		end
+		else begin
+			case(state)
+				START:begin
+					cur_shape <= n_shape; 
+				end
+				NEW_SHAPE:begin
+					cur_shape <= n_shape; 
+				end
+				HOLD:begin
+					if(hold_check == 1'd0)begin
+						hold_shape <= cur_shape;
+					end
+					else begin
+						hold_shape <= cur_shape ;
+						cur_shape  <= hold_shape; 
+					end
+				end
+			endcase
+		end
+	end
+
 	//================<控制向下>===========
 	always @(posedge IR_CLK_10S, negedge rst)begin
 		if(!rst)begin
@@ -1222,6 +1401,9 @@ module tetris(	clk,
 					pos_y <= pos_y + 1'b1;//下
 				end
 				PLACE:begin
+					pos_y <= -6'd4;
+				end
+				HOLD:begin
 					pos_y <= -6'd4;
 				end
 			endcase
