@@ -7,13 +7,12 @@ FPGA_TETRIS
 <img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris_shape_cut.PNG" alt="krameri120's TETRIS" width="46%" />
 
 ## 操作說明！
-|KEY_BOARD|操作|KEY_BOARD|操作|
-|:-:|:-:|:-:|:-:|
-|left|向左移動|right|向右移動|
-|z|左旋轉|x|右旋轉|
-|shift|hold|c|hold|
-|ENTER|開始遊戲|up|左旋轉|
-|down|快速降落|||
+|KEY_BOARD|操作|KEY_BOARD|操作|KEY_BOARD|操作|
+|:-:|:-:|:-:|:-:|:-:|:-:|
+|left|向左移動|right|向右移動|down|快速降落|
+|z|左旋轉|x|右旋轉|up|左旋轉|
+|shift|hold|c|hold|ENTER|開始遊戲|
+
 
 1. IR -> 速度調整
 2. VGA -> 顯示畫面
