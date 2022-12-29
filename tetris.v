@@ -199,6 +199,10 @@ module tetris(	clk,
 		end
 	end
 	
+	
+	wire time_clk;
+	counterDivider_TETRIS #(26)  time_cnt_1(clk, rst, time_clk, 26'd5000_0000);  	//除頻5000萬，時間time_clk
+	
 	wire first_clk_1;
 	wire first_clk_10;
 	//======================<第一組速度>=====================
@@ -781,7 +785,7 @@ module tetris(	clk,
 		end
 	end
 	
-	always @(posedge first_clk_10, negedge rst)begin
+	always @(posedge time_clk, negedge rst)begin
 		if(!rst)begin
 			time_cnt <= 10'd0;
 		end
