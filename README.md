@@ -8,12 +8,9 @@ FPGA_TETRIS
 
 ## 操作說明
 
-|KEY_BOARD|操作|KEY_BOARD|
+|KEY_BOARD|操作|KEY_BOARD|操作|
 |:-:|:-:|:-:|:-:|
 |left|向左移動|right|向右移動|
-
-
-
 |down|快速降落|space|直接降落|
 |z|左旋轉|x|右旋轉|
 |up|左旋轉|ENTER|開始遊戲|
