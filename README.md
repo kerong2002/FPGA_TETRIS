@@ -78,3 +78,4 @@ FPGA_TETRIS
 
 ## 2022/12/29
 - 1 時間bug修復
+- 2 hold 方塊
