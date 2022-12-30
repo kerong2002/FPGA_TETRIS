@@ -1,6 +1,7 @@
 `include "./IR.v"
 `include "./LCD.v"
 `include "./PS2_KEYBOARD2.v"
+`include "./beep.v"
 //a`include "./IMG.v"
 module tetris(	clk,
 					rst,
@@ -19,10 +20,79 @@ module tetris(	clk,
 					VGA_CLOCK,
 					PS2_CLK,
 					PS2_DAT,
-					LEDR);
+					LEDR,
+					LEDG,
+					beep
+					);
 	
 	input clk;						//clk 50MHz
 	input rst;						//重製訊號
+	output beep;					//聲音
+	output reg [8:0] LEDG;
+	wire [2:0] level;
+	assign LEDR[17] = voice_check;
+	assign level = voice_level;
+	always @(*)begin
+		case(voice_level)
+			3'd0 : LEDG[7:0] =  8'b0000_0001; 
+			3'd1 : LEDG[7:0] =  8'b0000_0011;
+			3'd2 : LEDG[7:0] =  8'b0000_0111;
+			3'd3 : LEDG[7:0] =  8'b0000_1111;
+			3'd4 : LEDG[7:0] =  8'b0001_1111;
+			3'd5 : LEDG[7:0] =  8'b0011_1111;
+			3'd6 : LEDG[7:0] =  8'b0111_1111;
+			3'd7 : LEDG[7:0] =  8'b1111_1111;
+		endcase
+	end
+	reg [2:0] voice_level;
+	reg [2:0] voice_save;
+	reg voice_check;
+	always @(negedge oDATA_READY, negedge rst)begin
+		if(!rst)begin
+			voice_level <= 3'd4;
+			voice_save  <= 3'd0;
+			voice_check <= 1'd0;
+		end
+		else begin
+			case(oDATA[23:16])
+				8'h0C:begin
+					if(voice_check==1'd0)begin
+						voice_save <=voice_level;
+						voice_level <= 3'd0;
+						voice_check <= 1'd1;
+					end
+					else begin
+						voice_level <=voice_save;
+						voice_check <= 1'd0;
+					end
+				end
+				8'h1B:begin
+					if(voice_check)begin
+						voice_level <= voice_level + voice_save + 3'd1;
+						voice_check <= 1'd0;
+					end
+					else begin
+						if(voice_level < 3'd7)begin
+							voice_level <= voice_level + 3'd1;
+						end
+					end
+				end
+				8'h1F:begin
+					if(voice_check)begin
+						voice_level <= voice_level + voice_save - 3'd1;
+						voice_check <= 1'd0;
+					end
+					else begin
+						if(voice_level > 1)begin
+							voice_level <= voice_level - 3'd1;
+						end
+					end
+				end
+			endcase
+		end
+	end
+	
+	beep music_1(clk, rst,level, beep);
 	//input KEY_1;					//按鈕,開始
 	//==========<PS2>=================
 	input	PS2_CLK;						//PS2鍵盤訊號輸入
@@ -155,17 +225,7 @@ module tetris(	clk,
 						IR_speed <= IR_speed + 2'd1;
 					end
 				end
-				8'h1B:begin
-					if(IR_speed < 2'd3)begin
-						IR_speed <= IR_speed + 2'd1;
-					end
-				end
 				8'h1E:begin
-					if(IR_speed > 2'd0)begin
-						IR_speed <= IR_speed - 2'd1;
-					end
-				end
-				8'h1F:begin
 					if(IR_speed > 2'd0)begin
 						IR_speed <= IR_speed - 2'd1;
 					end
