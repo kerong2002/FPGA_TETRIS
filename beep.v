@@ -54,12 +54,7 @@ module beep(clk, rst, level, beep);
 			state <= 7'd0;
 		end
 		else if(state_cnt_done)begin
-			if(state<7'd126)begin
-				state <= state + 7'd1;
-			end
-			else begin
-				state <= 7'd0;
-			end
+			state <= state + 7'd1;	
 		end
 	end
 	
