@@ -27,6 +27,7 @@ module tetris(	clk,
 	
 	input clk;						//clk 50MHz
 	input rst;						//重製訊號
+	//=====================<聲音部分>=========================
 	output beep;					//聲音
 	output reg [8:0] LEDG;
 	wire [2:0] level;
@@ -92,7 +93,9 @@ module tetris(	clk,
 		end
 	end
 	
+	//==========<樂譜>=================
 	beep music_1(clk, rst,level, beep);
+	
 	//input KEY_1;					//按鈕,開始
 	//==========<PS2>=================
 	input	PS2_CLK;						//PS2鍵盤訊號輸入
