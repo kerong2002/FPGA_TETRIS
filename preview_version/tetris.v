@@ -824,12 +824,13 @@ module tetris(	clk,
 				DECLINE:begin
 					if(key1_on || key2_on)begin
 						preview_y <= -6'd4;
+						pre_check <= 1'd0;
 					end
 					if(preview_y <0)begin
 						preview_y <= preview_y + 6'd1;
+						pre_check <= 1'd0;
 					end
 					else begin
-						pre_check <= 1'd0;
 						if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 &&( ((preview_y + 3) >= 18) || (board[preview_y+4+5][pos_x+3]==1'b1)))begin
 						  pre_check <= 1'd1;
 						end
