@@ -1085,7 +1085,7 @@ module tetris(	clk,
 				
 				
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]>=3'd1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
-					{VGA_R,VGA_G,VGA_B}<=color[3];
+					{VGA_R,VGA_G,VGA_B}<=color[board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15] + 5];
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=color[4];
