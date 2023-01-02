@@ -108,6 +108,10 @@ module tetris(	clk,
 	wire [7:0] key2_code;			//按鍵2資料
 	wire [7:0] key3_code;			//按鍵3資料
 	output [17:0] LEDR;				//檢測鍵盤
+	
+	assign {LEDR[16:6],LEDR[0]} = 12'bzzzz_zzzz_zzzz;
+
+	
 	assign LEDR[1] = key1_on;		//存載上下左右
 	assign LEDR[2] = key2_on;     //存載選轉
 	assign LEDR[3] = key3_on;     //檢測快速降落
@@ -516,7 +520,7 @@ module tetris(	clk,
 			DIED       : gameState = 2'd2;
 	  endcase
 	end
-	LCD lcd1(clk, rst, gameState, wire_time, wire_score,  , LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
+	LCD lcd1(clk, rst, gameState, wire_time, wire_score, LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
 	
 	
 	always@(posedge clk)
@@ -726,7 +730,7 @@ module tetris(	clk,
 		end
 	end
 
-	reg [23:0]color[12:0];	//顏色區塊
+	reg [23:0]color[19:0];	//顏色區塊
 	reg [3:0] current_color;
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
@@ -765,6 +769,47 @@ module tetris(	clk,
 		end
 	end
 	
+	reg [4:0] n2_shape;				//下一個圖形2
+	reg [3:0] next2_color;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			next2_color <= 4'd0;
+		end
+		else begin
+			case(n2_shape[2:0])
+				3'd0:next2_color <= 4'd6;
+				3'd1:next2_color <= 4'd7;
+				3'd2:next2_color <= 4'd8;
+				3'd3:next2_color <= 4'd9;
+				3'd4:next2_color <= 4'd10;
+				3'd5:next2_color <= 4'd11;
+				3'd6:next2_color <= 4'd12;
+				3'd7:next2_color <= 4'd12;
+			endcase
+		end
+	end
+	
+	reg [4:0] n3_shape;				//下一個圖形3
+	reg [3:0] next3_color;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			next3_color <= 4'd0;
+		end
+		else begin
+			case(n3_shape[2:0])
+				3'd0:next3_color <= 4'd6;
+				3'd1:next3_color <= 4'd7;
+				3'd2:next3_color <= 4'd8;
+				3'd3:next3_color <= 4'd9;
+				3'd4:next3_color <= 4'd10;
+				3'd5:next3_color <= 4'd11;
+				3'd6:next3_color <= 4'd12;
+				3'd7:next3_color <= 4'd12;
+			endcase
+		end
+	end
+	
+	
 	reg [3:0] hold_color;
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
@@ -791,14 +836,163 @@ module tetris(	clk,
 	parameter Board_frame     = 13'd5;
 	parameter Board_N_shape_min_X = 13'd450;
 	parameter Board_N_shape_max_X	= 13'd510;
+	
 	parameter Board_N_shape_min_Y = 13'd70;
 	parameter Board_N_shape_max_Y = 13'd150;
+	
+	parameter Board_N2_shape_min_Y = 13'd160;
+	parameter Board_N2_shape_max_Y = 13'd240;
+	
+	parameter Board_N3_shape_min_Y = 13'd250;
+	parameter Board_N3_shape_max_Y = 13'd330;
+	
 	parameter Board_H_shape_min_X = 13'd145;
 	parameter Board_H_shape_max_X	= 13'd205;
-	//parameter LOGO_min_X = 13'd50;
-	//parameter LOGO_max_X = 13'd150;
-	//parameter LOGO_min_Y = 13'd240;
-	//parameter LOGO_max_Y = 13'd309;
+
+	parameter LOGO_min_X = 13'd100;
+	parameter LOGO_max_X = 13'd200;
+	parameter LOGO_min_Y = 13'd240;
+	parameter LOGO_max_Y = 13'd309;
+	parameter ROM_TOTAl  = 13'd6900;
+	
+	//=================<讓記憶體知道要讀取>==========================
+	wire read;
+	
+	assign	read = (X>=LOGO_min_X && X<LOGO_max_X && Y>= LOGO_min_Y && Y<LOGO_max_Y) ? 1'b1 : 1'b0;
+	
+	//=================<選定的記憶體位置>=============================
+	reg [12:0] read_addr;
+	always @(posedge clk25M, negedge rst)begin
+		if(!rst)begin
+			read_addr <= 13'd0;
+		end
+		else if(read)begin
+			if(read_addr < ROM_TOTAl - 1'd1)begin
+				read_addr <= read_addr + 1'd1;
+			end
+			else begin
+				read_addr <= 13'd0;
+			end
+		end
+	end
+	
+	wire [23:0] rom_data;		//讀出資料
+	//===========<調用IP核>=================
+	pic_rom pic_rom_inst(
+		.clock(clk),				//訊號
+		.address(read_addr),		//地址
+		.rden(read),				//讀寫確定
+		.q(rom_data)				//讀出資料
+	);
+	
+
+	reg signed [5:0] preview_y;			//0~31 預覽Y座標
+	reg pre_check;
+	reg [5:0] save_pos_x;
+	reg [2:0] save_rotation_choose;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			preview_y <= -6'd4;
+			pre_check <= 1'd0;
+			save_pos_x <= pos_x;
+			save_rotation_choose <= rotation_choose;
+		end
+		else begin
+			case(state)
+				START:begin
+					preview_y <= -6'd4;
+					save_pos_x <= pos_x;
+					save_rotation_choose <= rotation_choose;
+				end
+				NEW_SHAPE:begin
+					preview_y <= -6'd4;
+					pre_check <= 1'd0;
+					save_pos_x <= pos_x;
+					save_rotation_choose <= rotation_choose;
+				end
+				HOLD:begin
+					preview_y <= -6'd4;
+					pre_check <= 1'd0;
+					save_pos_x <= pos_x;
+					save_rotation_choose <= rotation_choose;
+				end
+				PLACE:begin
+					preview_y <= -6'd4;
+					pre_check <= 1'd0;
+					save_pos_x <= pos_x;
+					save_rotation_choose <= rotation_choose;
+				end
+				DECLINE:begin
+					if(save_pos_x!=pos_x || save_rotation_choose != rotation_choose)begin
+						save_pos_x <= pos_x;
+						save_rotation_choose <= rotation_choose;
+						preview_y <= -6'd4;
+						pre_check <= 1'd0;
+					end
+					if(pre_check==1'd0)begin
+						if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 &&( ((preview_y + 3) >= 18) || (board[preview_y+4+5][pos_x+3]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 &&( ((preview_y + 3) >= 18) || (board[preview_y+4+5][pos_x+2]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 &&( ((preview_y + 3) >= 18) || (board[preview_y+4+5][pos_x+1]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 &&( ((preview_y + 3) >= 18) || (board[preview_y+4+5][pos_x+0]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 &&( ((preview_y + 2) >= 18) || (board[preview_y+3+5][pos_x+3]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 &&( ((preview_y + 2) >= 18) || (board[preview_y+3+5][pos_x+2]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 &&( ((preview_y + 2) >= 18) || (board[preview_y+3+5][pos_x+1]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 &&( ((preview_y + 2) >= 18) || (board[preview_y+3+5][pos_x+0]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 &&( ((preview_y + 1) >= 18) || (board[preview_y+2+5][pos_x+3]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 &&( ((preview_y + 1) >= 18) || (board[preview_y+2+5][pos_x+2]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 &&( ((preview_y + 1) >= 18) || (board[preview_y+2+5][pos_x+1]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 &&( ((preview_y + 1) >= 18) || (board[preview_y+2+5][pos_x+0]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 &&( ((preview_y + 0) >= 18) || (board[preview_y+1+5][pos_x+3]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 &&( ((preview_y + 0) >= 18) || (board[preview_y+1+5][pos_x+2]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 &&( ((preview_y + 0) >= 18) || (board[preview_y+1+5][pos_x+1]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 &&( ((preview_y + 0) >= 18) || (board[preview_y+1+5][pos_x+0]==1'b1)))begin
+						  pre_check <= 1'd1;
+						end
+						else if(pre_check==1'd0)begin
+							preview_y <= preview_y + 6'd1;
+						end
+					end
+				end
+				default:begin
+					preview_y <= -6'd4;
+					pre_check <= 1'd0;
+					save_pos_x <= pos_x;
+					save_rotation_choose <= rotation_choose;
+				end
+			endcase
+		end
+	end
+	
 	integer i,j;
 	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
 	//===========<螢幕上色>=================
@@ -809,54 +1003,105 @@ module tetris(	clk,
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-				if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
+				if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(pos_y+1)*20+40 && Y<(pos_y+1)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(pos_y+2)*20+40 && Y<(pos_y+2)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && X>=(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 && X>=(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 && X>=(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
-				else if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 && X>=(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>=(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(pos_y+3)*20+40 && Y<(pos_y+3)*20+60 && pos_y>=0)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
+				
+				//=========<預覽>===================
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(preview_y+1)*20+40 && Y<(preview_y+1)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(preview_y+1)*20+40 && Y<(preview_y+1)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][2]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(preview_y+1)*20+40 && Y<(preview_y+1)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][3]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(preview_y+1)*20+40 && Y<(preview_y+1)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][4]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(preview_y+2)*20+40 && Y<(preview_y+2)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end  
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][5]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(preview_y+2)*20+40 && Y<(preview_y+2)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][6]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(preview_y+2)*20+40 && Y<(preview_y+2)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][7]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(preview_y+2)*20+40 && Y<(preview_y+2)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][8]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(preview_y+3)*20+40 && Y<(preview_y+3)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][9]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(preview_y+3)*20+40 && Y<(preview_y+3)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][10]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(preview_y+3)*20+40 && Y<(preview_y+3)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end 
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][11]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(preview_y+3)*20+40 && Y<(preview_y+3)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][12]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(preview_y+4)*20+40 && Y<(preview_y+4)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][13]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(preview_y+4)*20+40 && Y<(preview_y+4)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][14]==1'b1 && X>(pos_x+2)*15 + 245 && X<(pos_x+2)*15+260 && Y>(preview_y+4)*20+40 && Y<(preview_y+4)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][15]==1'b1 && X>(pos_x+3)*15 + 245 && X<(pos_x+3)*15+260 && Y>(preview_y+4)*20+40 && Y<(preview_y+4)*20+60 && preview_y>=0 && pre_check )begin
+					 {VGA_R,VGA_G,VGA_B}<=color[current_color + 7];
+				end
+				
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
 					{VGA_R,VGA_G,VGA_B}<=color[3];
 				end
@@ -866,53 +1111,161 @@ module tetris(	clk,
 			end
 			//next_shape
 			else if(X>=Board_N_shape_min_X && X<Board_N_shape_max_X && Y>=Board_N_shape_min_Y && Y<Board_N_shape_max_Y)begin
-				if(graph[(n_shape[2:0]*4)][0]==1'b1 && X>=450 && X<465 && Y>=70 && Y<90)begin
+				if(graph[(n_shape[2:0]*4)][0]==1'b1 && X>450 && X<465 && Y>70 && Y<90)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][1]==1'b1 && X>=465 && X<480 && Y>=70 && Y<90)begin
+				else if(graph[(n_shape[2:0]*4)][1]==1'b1 && X>465 && X<480 && Y>70 && Y<90)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][2]==1'b1 && X>=480 && X<495 && Y>=70 && Y<90)begin
+				else if(graph[(n_shape[2:0]*4)][2]==1'b1 && X>480 && X<495 && Y>70 && Y<90)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][3]==1'b1 && X>=495 && X<510 && Y>=70 && Y<90)begin
+				else if(graph[(n_shape[2:0]*4)][3]==1'b1 && X>495 && X<510 && Y>70 && Y<90)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][4]==1'b1 && X>=450 && X<465 && Y>=90 && Y<110)begin
+				else if(graph[(n_shape[2:0]*4)][4]==1'b1 && X>450 && X<465 && Y>90 && Y<110)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][5]==1'b1 && X>=465 && X<480 && Y>=90 && Y<110)begin
+				else if(graph[(n_shape[2:0]*4)][5]==1'b1 && X>465 && X<480 && Y>90 && Y<110)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][6]==1'b1 && X>=480 && X<495 && Y>=90 && Y<110)begin
+				else if(graph[(n_shape[2:0]*4)][6]==1'b1 && X>480 && X<495 && Y>90 && Y<110)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][7]==1'b1 && X>=495 && X<510 && Y>=90 && Y<110)begin
+				else if(graph[(n_shape[2:0]*4)][7]==1'b1 && X>495 && X<510 && Y>90 && Y<110)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][8]==1'b1 && X>=450 && X<465 && Y>=110 && Y<130)begin
+				else if(graph[(n_shape[2:0]*4)][8]==1'b1 && X>450 && X<465 && Y>110 && Y<130)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][9]==1'b1 && X>=465 && X<480 && Y>=110 && Y<130)begin
+				else if(graph[(n_shape[2:0]*4)][9]==1'b1 && X>465 && X<480 && Y>110 && Y<130)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][10]==1'b1 && X>=480 && X<495 && Y>=110 && Y<130)begin
+				else if(graph[(n_shape[2:0]*4)][10]==1'b1 && X>480 && X<495 && Y>110 && Y<130)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][11]==1'b1 && X>=495 && X<510 && Y>=110 && Y<130)begin
+				else if(graph[(n_shape[2:0]*4)][11]==1'b1 && X>495 && X<510 && Y>110 && Y<130)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][12]==1'b1 && X>=450 && X<465 && Y>=130 && Y<150)begin
+				else if(graph[(n_shape[2:0]*4)][12]==1'b1 && X>450 && X<465 && Y>130 && Y<150)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][13]==1'b1 && X>=465 && X<480 && Y>=130 && Y<150)begin
+				else if(graph[(n_shape[2:0]*4)][13]==1'b1 && X>465 && X<480 && Y>130 && Y<150)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][14]==1'b1 && X>=480 && X<495 && Y>=130 && Y<150)begin
+				else if(graph[(n_shape[2:0]*4)][14]==1'b1 && X>480 && X<495 && Y>130 && Y<150)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
 				end
-				else if(graph[(n_shape[2:0]*4)][15]==1'b1 && X>=495 && X<510 && Y>=130 && Y<150)begin
+				else if(graph[(n_shape[2:0]*4)][15]==1'b1 && X>495 && X<510 && Y>130 && Y<150)begin
 					 {VGA_R,VGA_G,VGA_B}<=color[next_color];
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+				end
+			end
+			//next2_shape
+			else if(X>=Board_N_shape_min_X && X<Board_N_shape_max_X && Y>=Board_N2_shape_min_Y && Y<Board_N2_shape_max_Y)begin
+				if(graph[(n2_shape[2:0]*4)][0]==1'b1 && X>450 && X<465 && Y>160 && Y<180)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][1]==1'b1 && X>465 && X<480 && Y>160 && Y<180)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][2]==1'b1 && X>480 && X<495 && Y>160 && Y<180)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][3]==1'b1 && X>495 && X<510 && Y>160 && Y<180)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][4]==1'b1 && X>450 && X<465 && Y>180 && Y<200)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][5]==1'b1 && X>465 && X<480 && Y>180 && Y<200)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][6]==1'b1 && X>480 && X<495 && Y>180 && Y<200)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][7]==1'b1 && X>495 && X<510 && Y>180 && Y<200)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][8]==1'b1 && X>450 && X<465 && Y>200 && Y<220)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][9]==1'b1 && X>465 && X<480 && Y>200 && Y<220)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][10]==1'b1 && X>480 && X<495 && Y>200 && Y<220)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][11]==1'b1 && X>495 && X<510 && Y>200 && Y<220)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][12]==1'b1 && X>450 && X<465 && Y>220 && Y<240)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][13]==1'b1 && X>465 && X<480 && Y>220 && Y<240)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][14]==1'b1 && X>480 && X<495 && Y>220 && Y<240)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else if(graph[(n2_shape[2:0]*4)][15]==1'b1 && X>495 && X<510 && Y>220 && Y<240)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next2_color];
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
+				end
+			end
+			//next3_shape
+			else if(X>=Board_N_shape_min_X && X<Board_N_shape_max_X && Y>=Board_N3_shape_min_Y && Y<Board_N3_shape_max_Y)begin
+				if(graph[(n3_shape[2:0]*4)][0]==1'b1 && X>450 && X<465 && Y>250 && Y<270)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][1]==1'b1 && X>465 && X<480 && Y>250 && Y<270)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][2]==1'b1 && X>480 && X<495 && Y>250 && Y<270)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][3]==1'b1 && X>495 && X<510 && Y>250 && Y<270)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][4]==1'b1 && X>450 && X<465 && Y>270 && Y<290)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][5]==1'b1 && X>465 && X<480 && Y>270 && Y<290)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][6]==1'b1 && X>480 && X<495 && Y>270 && Y<290)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][7]==1'b1 && X>495 && X<510 && Y>270 && Y<290)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][8]==1'b1 && X>450 && X<465 && Y>290 && Y<310)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][9]==1'b1 && X>465 && X<480 && Y>290 && Y<310)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][10]==1'b1 && X>480 && X<495 && Y>290 && Y<310)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][11]==1'b1 && X>495 && X<510 && Y>290 && Y<310)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][12]==1'b1 && X>450 && X<465 && Y>310 && Y<330)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][13]==1'b1 && X>465 && X<480 && Y>310 && Y<330)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][14]==1'b1 && X>480 && X<495 && Y>310 && Y<330)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
+				end
+				else if(graph[(n3_shape[2:0]*4)][15]==1'b1 && X>495 && X<510 && Y>310 && Y<330)begin
+					 {VGA_R,VGA_G,VGA_B}<=color[next3_color];
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
@@ -921,52 +1274,52 @@ module tetris(	clk,
 			//hold_shape
 			else if(X>=Board_H_shape_min_X && X<Board_H_shape_max_X && Y>=Board_N_shape_min_Y && Y<Board_N_shape_max_Y)begin
 				if(hold_check)begin
-					if(graph[(hold_shape[2:0]*4)][0]==1'b1 && X>=145 && X<160 && Y>=70 && Y<90)begin
+					if(graph[(hold_shape[2:0]*4)][0]==1'b1 && X>145 && X<160 && Y>70 && Y<90)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][1]==1'b1 && X>=160 && X<175 && Y>=70 && Y<90)begin
+					else if(graph[(hold_shape[2:0]*4)][1]==1'b1 && X>160 && X<175 && Y>70 && Y<90)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][2]==1'b1 && X>=175 && X<190 && Y>=70 && Y<90)begin
+					else if(graph[(hold_shape[2:0]*4)][2]==1'b1 && X>175 && X<190 && Y>70 && Y<90)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][3]==1'b1 && X>=190 && X<205 && Y>=70 && Y<90)begin
+					else if(graph[(hold_shape[2:0]*4)][3]==1'b1 && X>190 && X<205 && Y>70 && Y<90)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][4]==1'b1 && X>=145 && X<160 && Y>=90 && Y<110)begin
+					else if(graph[(hold_shape[2:0]*4)][4]==1'b1 && X>145 && X<160 && Y>90 && Y<110)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][5]==1'b1 && X>=160 && X<175 && Y>=90 && Y<110)begin
+					else if(graph[(hold_shape[2:0]*4)][5]==1'b1 && X>160 && X<175 && Y>90 && Y<110)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][6]==1'b1 && X>=175 && X<190 && Y>=90 && Y<110)begin
+					else if(graph[(hold_shape[2:0]*4)][6]==1'b1 && X>175 && X<190 && Y>90 && Y<110)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][7]==1'b1 && X>=190 && X<205 && Y>=90 && Y<110)begin
+					else if(graph[(hold_shape[2:0]*4)][7]==1'b1 && X>190 && X<205 && Y>90 && Y<110)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][8]==1'b1 && X>=145 && X<160 && Y>=110 && Y<130)begin
+					else if(graph[(hold_shape[2:0]*4)][8]==1'b1 && X>145 && X<160 && Y>110 && Y<130)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][9]==1'b1 && X>=160 && X<175 && Y>=110 && Y<130)begin
+					else if(graph[(hold_shape[2:0]*4)][9]==1'b1 && X>160 && X<175 && Y>110 && Y<130)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][10]==1'b1 && X>=175 && X<190 && Y>=110 && Y<130)begin
+					else if(graph[(hold_shape[2:0]*4)][10]==1'b1 && X>175 && X<190 && Y>110 && Y<130)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][11]==1'b1 && X>=190 && X<205 && Y>=110 && Y<130)begin
+					else if(graph[(hold_shape[2:0]*4)][11]==1'b1 && X>190 && X<205 && Y>110 && Y<130)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][12]==1'b1 && X>=145 && X<160 && Y>=130 && Y<150)begin
+					else if(graph[(hold_shape[2:0]*4)][12]==1'b1 && X>145 && X<160 && Y>130 && Y<150)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][13]==1'b1 && X>=160 && X<175 && Y>=130 && Y<150)begin
+					else if(graph[(hold_shape[2:0]*4)][13]==1'b1 && X>160 && X<175 && Y>130 && Y<150)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][14]==1'b1 && X>=175 && X<190 && Y>=130 && Y<150)begin
+					else if(graph[(hold_shape[2:0]*4)][14]==1'b1 && X>175 && X<190 && Y>130 && Y<150)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
-					else if(graph[(hold_shape[2:0]*4)][15]==1'b1 && X>=190 && X<205 && Y>=130 && Y<150)begin
+					else if(graph[(hold_shape[2:0]*4)][15]==1'b1 && X>190 && X<205 && Y>130 && Y<150)begin
 						 {VGA_R,VGA_G,VGA_B}<=color[hold_color];
 					end
 					else begin
@@ -977,12 +1330,13 @@ module tetris(	clk,
 					{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
 				end
 			end
+			//==========<放置LOGO>==========
+			else if(X>=LOGO_min_X && X<LOGO_max_X && Y>= LOGO_min_Y && Y<LOGO_max_Y)begin
+				{VGA_R,VGA_G,VGA_B} <= rom_data;
+			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
 				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
 			end
-			//else if(X>=LOGO_min_X && X<LOGO_max_X && Y>= LOGO_min_Y && Y<LOGO_max_Y)begin
-			//	{VGA_R,VGA_G,VGA_B}<=take_img;
-			//end
 			else begin
 				{VGA_R,VGA_G,VGA_B}<=24'b0;//其餘部分
 				//{VGA_R,VGA_G,VGA_B}<=take_img;//其餘部分
@@ -992,8 +1346,7 @@ module tetris(	clk,
 		end
 	end
 	
-	//wire [23:0] take_img;
-	//IMG img1(X-LOGO_min_X,Y-LOGO_min_Y,take_img);
+
 	
 	always @(posedge time_clk, negedge rst)begin
 		if(!rst)begin
@@ -1335,6 +1688,7 @@ module tetris(	clk,
 			case(state)
 				NEW_SHAPE:begin
 					pos_x <= initial_shape_pos_x;
+					rotation_choose <= 2'd0;
 				end
 				DECLINE:begin
 					if(key2_on)begin
@@ -1449,6 +1803,8 @@ module tetris(	clk,
 			shape <= 5'b0_1011;
 			pos_y <= initial_shape_pos_y;
 			n_shape <= 5'b1_1101;
+			n2_shape <= 5'b0_0010;
+			n3_shape <= 5'b0_0001;
 		end
 		else begin
 			case(state)
@@ -1456,9 +1812,11 @@ module tetris(	clk,
 					//===========<LFSR>=============
 					shape   <= {shape[2]^shape[3], shape[0]^shape[4],  shape[3] ^ shape[4], shape[2], shape[1]};
 					n_shape <= {n_shape[2]^n_shape[3], n_shape[0]^n_shape[4],  n_shape[3] ^ n_shape[4], n_shape[2], n_shape[1]};
+					n2_shape <= {n2_shape[2]^n2_shape[3], n2_shape[0]^n2_shape[4],  n2_shape[3] ^ n2_shape[4], n2_shape[2], n2_shape[1]};
+					n3_shape <= {n3_shape[2]^n3_shape[3], n3_shape[0]^n3_shape[4],  n3_shape[3] ^ n3_shape[4], n3_shape[2], n3_shape[1]};
 					//shape   <= {2'd0, shape[1],   shape[2]^shape[0],     shape[1]^shape[0]};
 					//n_shape <= {2'd0, n_shape[1]^n_shape[0], n_shape[2]^n_shape[0], n_shape[1]^n_shape[0]};
-					pos_y <= initial_shape_pos_y;
+					pos_y <= -6'd4;
 				end
 				DECLINE:begin
 					pos_y <= pos_y + 1'b1;//下
@@ -1490,6 +1848,14 @@ module tetris(	clk,
 			color[10]<=24'hff6b24;//color L
 			color[11]<=24'h1e07e4;//color J
 			color[12]<=24'h7b01d6;//color T
+			
+			color[13]<=24'hfefa5a;//color O
+			color[14]<=24'h74f0fa;//color I
+			color[15]<=24'ha0fe8f;//color S
+			color[16]<=24'hff8e8e;//color Z
+			color[17]<=24'hffc782;//color L
+			color[18]<=24'h7c99fe;//color J
+			color[19]<=24'hdb91ff;//color T
 		end else begin
 			color[0]<=24'h0000ff;//blue
 			color[1]<=24'h00ff00;//green
@@ -1504,6 +1870,14 @@ module tetris(	clk,
 			color[10]<=24'hff6b24;//color L
 			color[11]<=24'h1e07e4;//color J
 			color[12]<=24'h7b01d6;//color T
+			
+			color[13]<=24'hfefa5a;//color O
+			color[14]<=24'h74f0fa;//color I
+			color[15]<=24'ha0fe8f;//color S
+			color[16]<=24'hff8e8e;//color Z
+			color[17]<=24'hffc782;//color L
+			color[18]<=24'h7c99fe;//color J
+			color[19]<=24'hdb91ff;//color T
 		end
 	end
 

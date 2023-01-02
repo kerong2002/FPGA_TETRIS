@@ -6,14 +6,12 @@
 
 `define lcdLine2 {displayreg[16],displayreg[17],displayreg[18],displayreg[19],displayreg[20],displayreg[21],displayreg[22],displayreg[23],displayreg[24],displayreg[25],displayreg[26],displayreg[27],displayreg[28],displayreg[29],displayreg[30],displayreg[31]}
 
-module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN, LEDR, LEDG);
+module LCD(Clk, rst, gameState, timeNum, point, LCD_DATA, LCD_EN, LCD_RW, LCD_RS, DATA_IN);
     input           Clk, rst;
     input   [3:0]   DATA_IN;
     inout   [7:0]   LCD_DATA;
     output          LCD_EN, LCD_RW, LCD_RS;
-    input [1:0] SW;
-    output reg [17:0] LEDR;
-    output wire [8:0] LEDG;
+
     input [1:0] gameState;
     wire  [127:0] gameStr[2:0];
     input [9:0] timeNum;
@@ -78,11 +76,7 @@ module LCD(Clk, rst, gameState, timeNum, point, SW, LCD_DATA, LCD_EN, LCD_RW, LC
 
     wire clk72;
     counterDivider #(50, 50000000/4) D21(Clk, ~rst, clk72);
-    always @(*) begin
-        LEDR[15] = clk72;
-        LEDR[14] = Clk;
-        LEDR[13] = CLK_400HZ;
-    end
+
 
     parameter
     RESET           = 4'h0,

@@ -45,7 +45,7 @@ module beep(clk, rst, level, beep);
 		end		
 	end
 	
-	wire state_cnt_done = (state_cnt == state_top) ? 1 : 0;
+	wire state_cnt_done = (state_cnt == state_top) ? 1'b1 : 1'b0;
 	
 	reg [6:0] state;
 	reg [20:0] cnt_top;
@@ -226,10 +226,10 @@ module beep(clk, rst, level, beep);
 	
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
-			beep <= 0;
+			beep <= 1'b0;
 		end
 		else begin
-			beep <= (cnt< (cnt_top*level)) ? 1 : 0;
+			beep <= (cnt< (cnt_top*level)) ? 1'b1 : 1'b0;
 		end
 	end	
 	
