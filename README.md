@@ -1,7 +1,7 @@
 # FPGA_TETRIS
 FPGA_TETRIS
 ### 成品
-<img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris%E7%B5%90%E6%9E%9C.jpg" alt="krameri120's TETRIS" width="70%" />
+![img](https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris%E7%B5%90%E6%9E%9C.jpg)
 
 ### 架構圖
 <img src="https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris%E6%9E%B6%E6%A7%8B%E5%9C%96.png" alt="krameri120's TETRIS" width="70%" />
