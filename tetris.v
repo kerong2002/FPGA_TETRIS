@@ -276,7 +276,7 @@ module tetris(	clk,
 				down_speed <= 26'd50;
 			end
 			else if(key3_code == 8'h72 )begin
-				down_speed <= 26'd700_0000;
+				down_speed <= 26'd500_0000;
 			end
 			else begin
 				case(IR_speed)
