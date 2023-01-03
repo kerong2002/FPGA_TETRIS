@@ -107,3 +107,5 @@ FPGA_TETRIS
 - 1 預覽放置位置
 - 2 hold跟next文字
 - 3 調整快降速度
+- 4 方塊顏色
+- 5 gameover文字
