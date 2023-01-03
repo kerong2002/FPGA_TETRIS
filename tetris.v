@@ -880,6 +880,12 @@ module tetris(	clk,
 	parameter LOGO_max_Y = 13'd309;
 	parameter ROM_TOTAl  = 13'd6900;
 	
+	parameter G_min_X = 13'd270;
+	parameter G_max_X = 13'd370;
+	parameter G_min_Y = 13'd229;
+	parameter G_max_Y= 13'd251;
+	
+	parameter GAMEOVER_TXT_TOTAL  = 13'd2200;
 	parameter TXT_TOTAL  = 13'd1400;
 	
 	parameter Board_N_TXT_min_Y = 13'd45;
@@ -981,6 +987,35 @@ module tetris(	clk,
 		.q(h_rom_data)				//讀出資料
 	);
 	
+		//=================<讓記憶體知道要讀取>==========================
+	wire g_read;
+	
+	assign	g_read = (X>=G_min_X && X<G_max_X && Y>= G_min_Y && Y<G_max_Y) ? 1'b1 : 1'b0;
+	
+	//=================<選定的記憶體位置>=============================
+	reg [12:0] g_read_addr;
+	always @(posedge clk25M, negedge rst)begin
+		if(!rst)begin
+			g_read_addr <= 13'd0;
+		end
+		else if(g_read)begin
+			if(g_read_addr < GAMEOVER_TXT_TOTAL - 1'd1)begin
+				g_read_addr <= g_read_addr + 1'd1;
+			end
+			else begin
+				g_read_addr <= 13'd0;
+			end
+		end
+	end
+	wire g_rom_data;		//讀出資料
+	//===========<調用IP核>=================
+	pic_gameover_rom pic_g_rom_inst(
+		.clock(clk),				//訊號
+		.address(g_read_addr),		//地址
+		.rden(g_read),				//讀寫確定
+		.q(g_rom_data)				//讀出資料
+	);
+	
 	reg signed [5:0] preview_y;			//0~31 預覽Y座標
 	reg pre_check;
 	reg [5:0] save_pos_x;
@@ -1021,7 +1056,7 @@ module tetris(	clk,
 					if(save_pos_x!=pos_x || save_rotation_choose != rotation_choose)begin
 						save_pos_x <= pos_x;
 						save_rotation_choose <= rotation_choose;
-						preview_y <= -6'd4;
+						preview_y <= pos_y;
 						pre_check <= 1'd0;
 					end
 					if(pre_check==1'd0)begin
@@ -1099,7 +1134,15 @@ module tetris(	clk,
 		else begin
 			//主要方塊繪製部分
 			if(X>=Board_min_X && X<Board_max_X && Y>=Board_min_Y && Y<Board_max_Y)begin
-				if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
+				if(state == DIED && X>=G_min_X && X<G_max_X && Y>= G_min_Y && Y<G_max_Y)begin
+					if(g_rom_data==1'b1)begin
+						{VGA_R,VGA_G,VGA_B} <= 24'hFFFFFF;
+					end
+					else begin
+						{VGA_R,VGA_G,VGA_B} <= 24'hFF0000;
+					end
+				end
+				else if(graph[(cur_shape[2:0]*4) + rotation_choose][0]==1'b1 && X>(pos_x+0)*15 + 245 && X<(pos_x+0)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0 )begin
 					 {VGA_R,VGA_G,VGA_B}<=color[current_color];
 				end
 				else if(graph[(cur_shape[2:0]*4) + rotation_choose][1]==1'b1 && X>(pos_x+1)*15 + 245 && X<(pos_x+1)*15+260 && Y>(pos_y+0)*20+40 && Y<(pos_y+0)*20+60 && pos_y>=0)begin
