@@ -1,6 +1,0 @@
-To , Location
-
-clk , PIN_Y2 
-rst , PIN_M23 
-
-TxD,  PIN_AF16
