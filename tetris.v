@@ -2,6 +2,7 @@
 `include "./LCD.v"
 `include "./PS2_KEYBOARD2.v"
 `include "./beep.v"
+`include "./SEG_7.v"
 //a`include "./IMG.v"
 module tetris(	clk,
 					rst,
@@ -22,11 +23,35 @@ module tetris(	clk,
 					PS2_DAT,
 					LEDR,
 					LEDG,
-					beep
+					beep,
+					HEX0,
+					HEX2,
+					HEX3
 					);
 	
 	input clk;						//clk 50MHz
 	input rst;						//重製訊號
+	
+	//=====================<顯示等級>=========================
+	output reg [6:0] HEX3, HEX2, HEX0;
+	always @(posedge clk, negedge rst)begin
+		if(!rst)begin
+			{HEX3[0],HEX3[1],HEX3[2],HEX3[3],HEX3[4],HEX3[5],HEX3[6]} <= 7'bzzz_zzzz;
+			{HEX2[0],HEX2[1],HEX2[2],HEX2[3],HEX2[4],HEX2[5],HEX2[6]} <= 7'bzzz_zzzz;
+			{HEX0[0],HEX0[1],HEX0[2],HEX0[3],HEX0[4],HEX0[5],HEX0[6]} <= 7'bzzz_zzzz;
+		end
+		else begin
+			{HEX3[0],HEX3[1],HEX3[2],HEX3[3],HEX3[4],HEX3[5],HEX3[6]} <= 7'b111_0001;
+			{HEX2[0],HEX2[1],HEX2[2],HEX2[3],HEX2[4],HEX2[5],HEX2[6]} <= 7'b100_0001;
+			{HEX0[0],HEX0[1],HEX0[2],HEX0[3],HEX0[4],HEX0[5],HEX0[6]} <= seg_out;
+		end
+	end
+	wire [3:0] seg_speed_input;
+	assign seg_speed_input = IR_speed + 1'b1;
+	
+	wire [6:0] seg_out;
+	
+	SEG_7 seg_test(seg_speed_input, seg_out);
 	//=====================<聲音部分>=========================
 	output beep;					//聲音
 	output reg [8:0] LEDG;
@@ -297,7 +322,7 @@ module tetris(	clk,
 	wire forth_clk_1;
 	wire forth_clk_10;
 	//======================<第四組速度>=====================
-	counterDivider_TETRIS #(23)  cnt_forth_1(clk25M, rst, forth_clk_1,  26'd360_0000);  	 //除頻500萬，操作速度相當於0.2s
+	counterDivider_TETRIS #(23)  cnt_forth_1(clk25M, rst, forth_clk_1,  26'd330_0000);  	 //除頻500萬，操作速度相當於0.2s
 	counterDivider_TETRIS #(24)  cnt_forth_10(clk  , rst, forth_clk_10, down_speed);	 //除頻1250萬
 	
 	parameter V_FRONT = 11;
@@ -855,6 +880,17 @@ module tetris(	clk,
 	parameter LOGO_max_Y = 13'd309;
 	parameter ROM_TOTAl  = 13'd6900;
 	
+	parameter TXT_TOTAL  = 13'd1400;
+	
+	parameter Board_N_TXT_min_Y = 13'd45;
+	parameter Board_N_TXT_max_Y = 13'd65;
+	parameter Board_N_TXT_min_X = 13'd445;
+	parameter Board_N_TXT_max_X = 13'd515;
+	
+	parameter Board_H_TXT_min_Y = 13'd45;
+	parameter Board_H_TXT_max_Y = 13'd65;
+	parameter Board_H_TXT_min_X = 13'd140;
+	parameter Board_H_TXT_max_X = 13'd210;
 	//=================<讓記憶體知道要讀取>==========================
 	wire read;
 	
@@ -885,7 +921,66 @@ module tetris(	clk,
 		.q(rom_data)				//讀出資料
 	);
 	
-
+	
+	//=================<讓記憶體知道要讀取>==========================
+	wire n_read;
+	
+	assign	n_read = (X>=Board_N_TXT_min_X && X<Board_N_TXT_max_X && Y>= Board_N_TXT_min_Y && Y<Board_N_TXT_max_Y) ? 1'b1 : 1'b0;
+	
+	//=================<選定的記憶體位置>=============================
+	reg [12:0] n_read_addr;
+	always @(posedge clk25M, negedge rst)begin
+		if(!rst)begin
+			n_read_addr <= 13'd0;
+		end
+		else if(n_read)begin
+			if(n_read_addr < TXT_TOTAL - 1'd1)begin
+				n_read_addr <= n_read_addr + 1'd1;
+			end
+			else begin
+				n_read_addr <= 13'd0;
+			end
+		end
+	end
+	
+	wire n_rom_data;		//讀出資料
+	//===========<調用IP核>=================
+	pic_next_rom pic_n_rom_inst(
+		.clock(clk),				//訊號
+		.address(n_read_addr),		//地址
+		.rden(n_read),				//讀寫確定
+		.q(n_rom_data)				//讀出資料
+	);
+	
+	//=================<讓記憶體知道要讀取>==========================
+	wire h_read;
+	
+	assign	h_read = (X>=Board_H_TXT_min_X && X<Board_H_TXT_max_X && Y>= Board_H_TXT_min_Y && Y<Board_H_TXT_max_Y) ? 1'b1 : 1'b0;
+	
+	//=================<選定的記憶體位置>=============================
+	reg [12:0] h_read_addr;
+	always @(posedge clk25M, negedge rst)begin
+		if(!rst)begin
+			h_read_addr <= 13'd0;
+		end
+		else if(h_read)begin
+			if(h_read_addr < TXT_TOTAL - 1'd1)begin
+				h_read_addr <= h_read_addr + 1'd1;
+			end
+			else begin
+				h_read_addr <= 13'd0;
+			end
+		end
+	end
+	wire h_rom_data;		//讀出資料
+	//===========<調用IP核>=================
+	pic_hold_rom pic_h_rom_inst(
+		.clock(clk),				//訊號
+		.address(h_read_addr),		//地址
+		.rden(h_read),				//讀寫確定
+		.q(h_rom_data)				//讀出資料
+	);
+	
 	reg signed [5:0] preview_y;			//0~31 預覽Y座標
 	reg pre_check;
 	reg [5:0] save_pos_x;
@@ -1333,6 +1428,24 @@ module tetris(	clk,
 			//==========<放置LOGO>==========
 			else if(X>=LOGO_min_X && X<LOGO_max_X && Y>= LOGO_min_Y && Y<LOGO_max_Y)begin
 				{VGA_R,VGA_G,VGA_B} <= rom_data;
+			end
+			//=========<放置NEXT>===========
+			else if(X>=Board_N_TXT_min_X && X<Board_N_TXT_max_X && Y>= Board_N_TXT_min_Y && Y<Board_N_TXT_max_Y)begin
+				if(n_rom_data==1'b1)begin
+					{VGA_R,VGA_G,VGA_B} <= 24'hFFFFFF;
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B} <= 24'h000000;
+				end
+			end
+			//=========<放置HOLD>===========
+			else if(X>=Board_H_TXT_min_X && X<Board_H_TXT_max_X && Y>= Board_H_TXT_min_Y && Y<Board_H_TXT_max_Y)begin
+				if(h_rom_data==1'b1)begin
+					{VGA_R,VGA_G,VGA_B} <= 24'hFFFFFF;
+				end
+				else begin
+					{VGA_R,VGA_G,VGA_B} <= 24'h000000;
+				end
 			end
 			else if(X>Board_min_X-Board_frame && X<=Board_max_X+Board_frame && Y>Board_min_Y-Board_frame  && Y<=Board_max_Y+Board_frame)begin
 				{VGA_R,VGA_G,VGA_B}<=color[5];//邊界
