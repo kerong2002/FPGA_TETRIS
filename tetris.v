@@ -1087,6 +1087,7 @@ module tetris(	clk,
 			endcase
 		end
 	end
+
 	
 	integer i,j;
 	//因為螢幕比是4:3，所以在寬度跟高度分配上，有差異高/20，寬/15
@@ -1198,7 +1199,7 @@ module tetris(	clk,
 				end
 				
 				else if(board[(Y-Board_min_Y)/20+4][(X-Board_min_X)/15]==1'b1 && Y>=Board_min_Y && X>=Board_min_X && (Y-Board_min_Y)%20!=0 && (X-Board_min_X)%15!=0)begin
-					{VGA_R,VGA_G,VGA_B}<=color[3];
+					{VGA_R,VGA_G,VGA_B} <= color[board_color[(Y-Board_min_Y)/20+4][((X-Board_min_X)/15)*4+:4]];
 				end
 				else begin
 					{VGA_R,VGA_G,VGA_B}<=color[4];
@@ -1477,11 +1478,13 @@ module tetris(	clk,
 	
 	reg [4:0] remove_cnt;			//移除時序
 	reg [4:0] remove_pos;			//移除位置
+	reg [39:0] check_board_color[23:0];
 	//=============<檢測board>===============
 	always @(posedge clk, negedge rst)begin
 		if(!rst)begin
 			for(y=0;y<=23;y=y+1)begin
-				check_board [y] <= 10'b0;
+				check_board[y] <= 10'b0;
+				check_board_color[y] <= 40'b0;
 			end
 			remove_cnt <= 5'd23;
 			remove_pos <= 5'd23;
@@ -1492,6 +1495,7 @@ module tetris(	clk,
 				START:begin
 					for(y=0;y<=23;y=y+1)begin
 						check_board [y] <= 10'b0;
+						check_board_color[y] <= 40'b0;
 					end
 					remove_cnt <= 5'd23;
 					remove_pos <= 5'd23;
@@ -1505,6 +1509,7 @@ module tetris(	clk,
 					if(remove_cnt>3)begin
 						if(&board[remove_cnt]!=1)begin
 							check_board[remove_pos] <= board[remove_cnt];
+							check_board_color[remove_pos] <= board_color[remove_cnt];
 							remove_pos <= remove_pos - 5'd1;
 						end
 						else begin
@@ -1517,17 +1522,20 @@ module tetris(	clk,
 		end
 	end
 	
+	reg [39:0] board_color [23:0];
 	//==============<控制board>==============
 	always@(posedge clk, negedge rst)begin
 		if(!rst)begin
 			for(y=0;y<=23;y=y+1)begin
 				board[y] <= 10'b0;
+				board_color[y] <= 40'b0;
 			end
 		end
 		else begin
 			case(state)
 				NEW_SHAPE:begin
-					for(y=23;y>=0;y=y-1)begin
+					for(y=0;y<=23;y=y+1)begin
+						board_color[y] <= check_board_color[y];
 						board[y] <= check_board[y];
 					end
 				end
@@ -1536,6 +1544,7 @@ module tetris(	clk,
 						for(x=3;x>=0;x=x-1)begin
 							if(graph[(cur_shape[2:0]*4) + rotation_choose][(y<<2)+x]==1'b1)begin
 							  board[pos_y + y + 4][pos_x + x] <= 1'b1;//位置要往下放4個
+							  board_color[pos_y + y + 4][(pos_x + x)*4+:4] <= current_color;
 							end
 						end
 					end
