@@ -1,7 +1,8 @@
 # FPGA_TETRIS
 FPGA_TETRIS
 
-![DEMO](https://www.youtube.com/watch?v=T8ERXS_qcXM&ab_channel=%E9%98%BF%E6%A8%82)
+[DEMO](https://www.youtube.com/watch?v=T8ERXS_qcXM&ab_channel=%E9%98%BF%E6%A8%82)
+
 ### 成品
 ![img](https://github.com/kerong2002/FPGA_TETRIS/blob/main/tetris%E7%B5%90%E6%9E%9C.jpg)
 
